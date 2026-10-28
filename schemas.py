@@ -1,0 +1,1 @@
+# Esquemas para validar los JSONs
