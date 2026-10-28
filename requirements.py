@@ -1,1 +1,0 @@
-# Listado de dependencias de la aplicación
