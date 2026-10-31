@@ -9,7 +9,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/resources", StaticFiles(directory="resources"), name="resources")
 templates = Jinja2Templates(directory="templates")
 
+
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
     return templates.TemplateResponse(request=request, name="screen1.html", context={"user": "DAN"})
-  
+
+
+@app.get("/play", response_class=HTMLResponse)
+def read_screen2(request: Request):
+    return templates.TemplateResponse(request=request, name="screen2.html", context={})
