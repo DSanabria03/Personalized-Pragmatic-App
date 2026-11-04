@@ -1,0 +1,13 @@
+# BACKEND
+
+
+
+# FRONTEND
+
+
+
+# DATABASE
+
+
+
+# LLM
