@@ -1,0 +1,179 @@
+:root {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #101914;
+    background: #a5dbc3;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-width: 320px;
+    margin: 0;
+}
+
+.screen1 {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: #a5dbc3;
+}
+
+.header {
+    position: absolute;
+    z-index: 2;
+    top: 3vh;
+    right: 3.7vw;
+    left: 3.7vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.buttons button {
+    display: inline-flex;
+    height: 46px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    border: 2px solid #6c9e83;
+    border-radius: 999px;
+    background: transparent;
+    color: #101914;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.buttons .Play {
+    min-width: 72px;
+}
+
+.wordlings {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: clamp(14px, 1.4vw, 20px);
+    font-weight: 800;
+}
+
+.brand {
+    display: flex;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-radius: 50%;
+    background: #101914;
+}
+
+.brand span {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #a5dbc3;
+}
+
+.home {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.characters {
+    position: absolute;
+    bottom: 5vh;
+    left: 50%;
+    transform: translateX(-50%);
+    display: block;
+    width: 90%;
+    max-width: 1200px;
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+    z-index: 2;
+}
+
+.greeting {
+    position: absolute;
+    z-index: 1;
+    top: 15vh;
+    left: 50%;
+    margin: 0;
+    transform: translateX(-50%);
+    color: #6c9e83;
+    font-family: monospace;
+    font-size: clamp(2.5rem, 12vw, 13rem);
+    font-weight: 900;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.selector {
+    position: absolute;
+    z-index: 3;
+    right: 0;
+    bottom: 2vh;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.selector-label {
+    color: #101914;
+    font-size: clamp(14px, 1.25vw, 20px);
+    font-weight: 600;
+    white-space: nowrap;
+}
+.screen2 {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: #e86a58; 
+}
+.home-btn {
+    font-size: 1.1rem;
+    padding: 0 12px !important;
+}
+.greeting-large {
+    position: absolute;
+    z-index: 1;
+    top: 18vh;
+    left: 8vw;
+    margin: 0;
+    color: #f7a394; 
+    font-family: monospace;
+    font-size: clamp(3rem, 12vw, 12rem);
+    font-weight: 900;
+    line-height: 0.9;
+    text-align: left;
+    white-space: pre-line; 
+}
+.character-cowboy {
+    position: absolute;
+    right: 5vw;
+    bottom: 5vh;
+    display: block;
+    width: 45vw;
+    max-width: 550px;
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+    z-index: 2;
+}
