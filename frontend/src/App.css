@@ -1,125 +1,326 @@
-.screen1 {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
-  background: #ffffff;
+/* RESET & BASE */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.header {
-  position: absolute;
-  z-index: 2;
-  top: 3vh;
-  right: 3.7vw;
-  left: 3.7vw;
+body, html, #root {
+  width: 100%;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #ffffff;
+  color: #101914;
+}
+
+.app-container {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  min-height: 100vh;
   justify-content: space-between;
 }
 
-.wordlings {
+/* HEADER */
+.header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  font-size: clamp(14px, 1.4vw, 20px);
-  font-weight: 800;
+  padding: 24px 48px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .brand {
   display: flex;
-  width: 22px;
-  height: 22px;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  border-radius: 50%;
-  background: #101914;
-}
-
-.brand span {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #b3b3b3;
-}
-
-.buttons {
-  display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.play-button {
-  display: inline-flex;
-  min-width: 72px;
-  height: 46px;
-  align-items: center;
-  justify-content: center;
-  padding: 0 18px;
-  border: 2px solid #b3b3b3;
-  border-radius: 999px;
-  background: transparent;
-  color: #101914;
-  font: inherit;
-  font-weight: 700;
   cursor: pointer;
 }
 
-.play-button:focus-visible {
-  outline: 3px solid #101914;
-  outline-offset: 3px;
-}
-
-.home {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.characters {
-  position: absolute;
-  top: 7vh;
-  left: 10%;
-  display: block;
-  width: 80%;
-  height: auto;
-  pointer-events: none;
-  user-select: none;
-}
-
-.greeting {
-  position: absolute;
-  z-index: 1;
-  top: 18%;
-  left: 50%;
-  margin: 0;
-  transform: translateX(-50%);
-  color: #6c9e83;
-  font-family: monospace;
-  font-size: clamp(3rem, 16vw, 15rem);
-  font-weight: 900;
-  line-height: 1;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.selector {
-  position: absolute;
-  z-index: 2;
-  right: 0;
-  bottom: 0;
-  left: 0;
+.logo-dot {
+  background: #000;
+  color: #fff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
   display: flex;
-  height: 12vh;
   align-items: center;
   justify-content: center;
-  gap: clamp(12px, 1.5vw, 22px);
-  padding-bottom: env(safe-area-inset-bottom);
+  font-weight: bold;
 }
 
-.selector-label {
-  color: #101914;
-  font-size: clamp(14px, 1.25vw, 20px);
-  white-space: nowrap;
+.brand-name {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #333;
+}
+
+.nav-button:hover {
+  color: #6E42C1;
+}
+
+/* PANTALLA 1: HOME */
+.home-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  text-align: center;
+  padding: 20px;
+}
+
+.hero-title {
+  font-size: 72px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #d1d5db;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  font-family: monospace;
+}
+
+.hero-img-container {
+  max-width: 1000px;
+  width: 100%;
+}
+
+.hero-img {
+  width: 100%;
+  height: auto;
+}
+
+/* PANTALLA 2: LOGIN TERAPEUTAS */
+.login-main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  padding: 20px 48px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  flex-grow: 1;
+}
+
+/* TARJETA CELESTE IZQUIERDA */
+.left-card {
+  background-color: #D8EEFF;
+  border-radius: 36px;
+  padding: 40px;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #4b5563;
+}
+
+.card-title {
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin: 12px 0;
+  color: #111827;
+  font-family: monospace;
+}
+
+.card-desc {
+  font-size: 15px;
+  color: #374151;
+  margin-bottom: 24px;
+}
+
+.circles-container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.circle-frame {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #C5E4FF;
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.circle-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bottom-banner {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* FORMULARIO DERECHA */
+.right-form-container {
+  width: 45%;
+  max-width: 420px;
+}
+
+.form-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #6b7280;
+}
+
+.form-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: #111827;
+  margin: 4px 0 8px 0;
+  font-family: monospace;
+}
+
+.form-subtitle {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.input-field {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  font-size: 14px;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.show-btn {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: bold;
+  color: #6E42C1;
+  cursor: pointer;
+}
+
+.forgot-link {
+  display: block;
+  text-align: right;
+  font-size: 12px;
+  color: #6E42C1;
+  text-decoration: none;
+  margin-top: 6px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background-color: #6E42C1;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 9999px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.submit-btn:hover {
+  background-color: #5b34a2;
+}
+
+.create-account-wrapper {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.purple-link {
+  color: #6E42C1;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.play-card {
+  background-color: #F3EEFF;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  margin-top: 24px;
+}
+
+.play-card p {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* FOOTER */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 24px 48px;
+  font-size: 12px;
+  color: #6b7280;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.footer-links {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-links a {
+  color: #6b7280;
+  text-decoration: none;
 }
