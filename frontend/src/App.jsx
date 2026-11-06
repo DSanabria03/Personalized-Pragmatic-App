@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './App.css';
 
 export default function App() {
@@ -27,7 +27,7 @@ export default function App() {
       } else {
         setError(data.detail || 'Correo o contraseña incorrectos');
       }
-    } catch (err) {
+    } catch {
       setError('No se pudo conectar con el servidor (Backend apagado)');
     }
   };
