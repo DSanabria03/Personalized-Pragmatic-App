@@ -30,12 +30,10 @@ export default function App() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setSuccessMessage('Login successful!');
-      } else {
-        setError(data.detail || 'Incorrect email or password');
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(typeof data.detail === 'string' ? data.detail : 'Incorrect email or password');
+        return;
       }
     } catch {
       setError('Could not connect to the server');
