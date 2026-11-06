@@ -7,6 +7,16 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [registration, setRegistration] = useState({
+    fullName: '',
+    professionalRole: '',
+    practice: '',
+    registrationNumber: '',
+    displayName: '',
+    email: '',
+    password: '',
+    acceptedTerms: false,
+  });
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -23,19 +33,27 @@ export default function App() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setSuccessMessage('¡Login exitoso! Bienvenido a Pip.');
+        setSuccessMessage('Login successful!');
       } else {
-        setError(data.detail || 'Correo o contraseña incorrectos');
+        setError(data.detail || 'Incorrect email or password');
       }
     } catch {
-      setError('No se pudo conectar con el servidor (Backend apagado)');
+      setError('Could not connect to the server');
     }
+  };
+
+  const handleRegistrationChange = (event) => {
+    const { name, value, checked, type } = event.target;
+
+    setRegistration((current) => ({
+      ...current,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   return (
     <div className="app-container">
-      
-      {/* ================= PANTALLA 1: HOME ================= */}
+      {/* HOME SCREEN */}
       {currentScreen === 'home' && (
         <>
           <header className="header">
@@ -53,13 +71,13 @@ export default function App() {
           <main className="home-main">
             <h1 className="hero-title">HI, EXPLORER!</h1>
             <div className="hero-img-container">
-              <img src="/resources/characters.png" alt="Pip Characters" className="hero-img" />
+              <img src="/resources/characters.png" className="hero-img" />
             </div>
           </main>
         </>
       )}
 
-      {/* ================= PANTALLA 2: LOGIN TERAPEUTAS ================= */}
+      {/* LOGIN SCREEN */}
       {currentScreen === 'login' && (
         <>
           <header className="header">
@@ -75,7 +93,6 @@ export default function App() {
           </header>
 
           <main className="login-main">
-            {/* Tarjeta Izquierda Celeste */}
             <div className="left-card">
               <div>
                 <span className="card-tag">For Therapists</span>
@@ -83,13 +100,12 @@ export default function App() {
                 <p className="card-desc">A shared space to help children feel, discover and grow.</p>
               </div>
 
-              {/* IMÁGENES CIRCULARES (c1.png y c2.png) */}
               <div className="circles-container">
                 <div className="circle-frame">
-                  <img src="/resources/c1.png" alt="Personaje Azul" />
+                  <img src="/resources/c1.png"/>
                 </div>
                 <div className="circle-frame">
-                  <img src="/resources/c2.png" alt="Personaje Verde" />
+                  <img src="/resources/c2.png"/>
                 </div>
               </div>
 
@@ -98,7 +114,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Formulario Derecho */}
+            
             <div className="right-form-container">
               <span className="form-tag">Welcome Back</span>
               <h2 className="form-title">Your next step starts here.</h2>
@@ -139,9 +155,9 @@ export default function App() {
                 <button type="submit" className="submit-btn">Log in</button>
               </form>
 
-              <div className="create-account-wrapper">
-                <a href="#create" className="purple-link">New to Pip? Create a therapist account</a>
-              </div>
+              <button type="button" className="purple-link register-link"  onClick={() => setCurrentScreen('register')}>
+                New to Pip? Create a therapist account
+              </button>
 
               <div className="play-card">
                 <p>Here to play?</p>
@@ -151,6 +167,170 @@ export default function App() {
           </main>
         </>
       )}
+
+      {currentScreen === 'register' && (
+      <>
+        <header className="register-header">
+          <div className="register-header-left">
+            <button
+              type="button"
+              className="register-logo"
+              aria-label="Go to home"
+              onClick={() => setCurrentScreen('home')}
+            >
+              ••
+            </button>
+            <button
+              type="button"
+              className="register-login-link"
+              onClick={() => setCurrentScreen('login')}
+            >
+              Log-in
+            </button>
+          </div>
+
+          <nav className="register-nav" aria-label="Main navigation">
+            <button type="button">Settings</button>
+            <button type="button">Help</button>
+          </nav>
+        </header>
+
+        <main className="register-main">
+          <aside className="register-art">
+            <div>
+              <h1>Small steps.<br />Shared beginnings.</h1>
+              <p>
+                Create your account, set up your practice and invite each child
+                at their own pace.
+              </p>
+            </div>
+
+            <img
+              src="/resources/c3.png"
+            />
+          </aside>
+
+          <section className="register-content">
+            <p className="register-step">STEP 1 OF 2 · YOUR PRACTICE</p>
+            <h2>A little about you.</h2>
+            <p className="register-description">
+              Set up the profile children and their grown-ups will see.
+            </p>
+
+            <form
+              className="register-form"
+              onSubmit={(event) => event.preventDefault()}
+            >
+              <label>
+                Full name
+                <input
+                  name="fullName"
+                  value={registration.fullName}
+                  onChange={handleRegistrationChange}
+                  placeholder="Dr. Emma"
+                  autoComplete="name"
+                  required
+                />
+              </label>
+
+              <label>
+                Professional role
+                <input
+                  name="professionalRole"
+                  value={registration.professionalRole}
+                  onChange={handleRegistrationChange}
+                  placeholder="Speech and language therapist"
+                  required
+                />
+              </label>
+
+              <label>
+                Practice or organisation
+                <input
+                  name="practice"
+                  value={registration.practice}
+                  onChange={handleRegistrationChange}
+                  placeholder="Little Steps Therapy"
+                  required
+                />
+              </label>
+
+              <label>
+                Professional registration number
+                <input
+                  name="registrationNumber"
+                  value={registration.registrationNumber}
+                  onChange={handleRegistrationChange}
+                  placeholder="Enter your registration number"
+                />
+              </label>
+
+              <label>
+                Display name
+                <input
+                  name="displayName"
+                  value={registration.displayName}
+                  onChange={handleRegistrationChange}
+                  placeholder="Dr. Emma"
+                  required
+                />
+              </label>
+
+              <label>
+                Work email
+                <input
+                  type="email"
+                  name="email"
+                  value={registration.email}
+                  onChange={handleRegistrationChange}
+                  placeholder="emma@littlesteps.com"
+                  autoComplete="email"
+                  required
+                />
+              </label>
+
+              <label>
+                Password
+                <input
+                  type="password"
+                  name="password"
+                  value={registration.password}
+                  onChange={handleRegistrationChange}
+                  placeholder="Create a password"
+                  autoComplete="new-password"
+                  minLength={12}
+                  required
+                />
+                <small>Use at least 12 characters, including a number.</small>
+              </label>
+
+              <label className="register-terms">
+                <input
+                  type="checkbox"
+                  name="acceptedTerms"
+                  checked={registration.acceptedTerms}
+                  onChange={handleRegistrationChange}
+                  required
+                />
+                <span>I agree to the Terms of use and Privacy policy.</span>
+              </label>
+
+              <button type="submit" className="register-submit">
+                Create account
+              </button>
+            </form>
+
+            <button
+              type="button"
+              className="register-back-link"
+              onClick={() => setCurrentScreen('login')}
+            >
+              Already have an account? Log in
+            </button>
+          </section>
+        </main>
+      </>
+    )}
 
       {/* FOOTER */}
       <footer className="footer">
