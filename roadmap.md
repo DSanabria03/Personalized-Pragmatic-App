@@ -5,10 +5,10 @@
   * [X] Diagrama con las tecnologías que se van a usar
   * [X] Detallar los pasos y decisiones
 * [X] Migrar Frontend a React
-* [ ] Hacer Pantalla de Inicio
+* [X] Hacer Pantalla de Inicio
 * [ ] Hacer Login
 
-  * [ ] Login General
+  * [X] Login General
   * [ ] Login Terapeuta
   * [ ] Login Niño
 * [ ] Dudas:
