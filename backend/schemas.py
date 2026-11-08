@@ -1,1 +1,5 @@
-# Esquemas para validar los JSONs
+from pydantic import BaseModel, EmailStr
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
