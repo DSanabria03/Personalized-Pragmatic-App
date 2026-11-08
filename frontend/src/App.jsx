@@ -70,7 +70,7 @@ export default function App() {
   return (
     <div className="app-container">
       
-      {/* 1. HOME SCREEN */}
+      {/* HOME */}
       {currentScreen === 'home' && (
         <>
           <header className="header">
@@ -88,13 +88,13 @@ export default function App() {
           <main className="home-main">
             <h1 className="hero-title">HI, EXPLORER!</h1>
             <div className="hero-img-container">
-              <img src="/resources/characters.png" className="hero-img" alt="Characters" />
+              <img src="/resources/characters.png" className="hero-img"/>
             </div>
           </main>
         </>
       )}
 
-      {/* 2. LOGIN TERAPEUTAS */}
+      {/* THERAPIST LOGIN */}
       {currentScreen === 'login' && (
         <>
           <header className="header">
@@ -118,11 +118,7 @@ export default function App() {
               </div>
 
               <div className="figma-right-art-container">
-                <img 
-                  src="/resources/register-characters.png" 
-                  alt="Register characters" 
-                  className="figma-right-art-img"
-                />
+                <img src="/resources/register-characters.png" className="figma-right-art-img"/>
               </div>
 
               <div className="bottom-banner">
@@ -171,7 +167,7 @@ export default function App() {
         </>
       )}
 
-      {/* 3. REGISTRO TERAPEUTA */}
+      {/* THERAPIST REGISTER */}
       {currentScreen === 'register' && (
         <>
           <header className="register-header">
@@ -192,7 +188,7 @@ export default function App() {
                 <p>Create your account, set up your practice and invite each child at their own pace.</p>
               </div>
               <div className="register-art-image-wrapper">
-                <img src="/resources/c3.png" alt="Three Characters" />
+                <img src="/resources/c3.png"/>
               </div>
             </aside>
 
@@ -224,7 +220,7 @@ export default function App() {
         </>
       )}
 
-      {/* 4. AÑADIR NIÑO */}
+      {/* ADD CHILD */}
       {currentScreen === 'add-child' && (
         <>
           <header className="register-header">
@@ -246,11 +242,7 @@ export default function App() {
               </div>
 
               <div className="figma-right-art-container">
-                <img 
-                  src="/resources/register-characters.png" 
-                  alt="Orange and Green Characters Art" 
-                  className="figma-right-art-img"
-                />
+                <img src="/resources/register-characters.png" className="figma-right-art-img"/>
               </div>
 
               <p style={{ fontSize: '13px', color: '#555', marginTop: '10px', position: 'relative', zIndex: 2 }}>No child email or password needed.</p>
@@ -298,7 +290,7 @@ export default function App() {
         </>
       )}
 
-      {/* 5. CÓDIGO GENERADO */}
+      {/* CHILD CODE */}
       {currentScreen === 'child-code' && (
         <>
           <header className="register-header">
@@ -320,11 +312,7 @@ export default function App() {
               </div>
 
               <div className="figma-right-art-container">
-                <img 
-                  src="/resources/register-characters.png" 
-                  alt="Orange and Green Characters Art" 
-                  className="figma-right-art-img"
-                />
+                <img src="/resources/register-characters.png" className="figma-right-art-img"/>
               </div>
 
               <p style={{ fontSize: '13px', color: '#555', marginTop: '10px', position: 'relative', zIndex: 2 }}>Dan's account is connected to your practice.</p>
@@ -366,7 +354,7 @@ export default function App() {
         </>
       )}
 
-      {/* 6. LOGIN DE NIÑOS */}
+      {/* CHILD LOGIN */}
       {currentScreen === 'child-login' && (
         <>
           <header className="register-header">
@@ -389,7 +377,7 @@ export default function App() {
               </div>
 
               <div className="child-art-container">
-                <img src="/resources/child-characters.png" alt="Blue and White Characters Art" className="child-art-img" />
+                <img src="/resources/child-characters.png" className="child-art-img" />
               </div>
 
               <p style={{ fontSize: '13px', color: '#555' }}>A familiar face behind every adventure.</p>
