@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SiteHeader from './SiteHeader';
 
 export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
   const [email, setEmail] = useState('');
@@ -34,17 +35,7 @@ export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
 
   return (
     <>
-      <header className="header">
-        <div className="brand" onClick={() => onNavigate('go_home')}>
-          <div className="logo-dot">••</div>
-          <span className="brand-name">Pip</span>
-        </div>
-        <nav className="nav-links">
-          <button onClick={() => onNavigate('go_home')} className="nav-button">Home</button>
-          <button className="nav-button" style={{ fontWeight: 'bold' }}>For therapists</button>
-          <button onClick={() => alert('Help')} className="nav-button">Help</button>
-        </nav>
-      </header>
+      <SiteHeader onNavigate={onNavigate} isLogInActive />
 
       <main className="login-main">
         <div className="left-card">

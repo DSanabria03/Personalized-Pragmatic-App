@@ -76,6 +76,12 @@
   color: #6E42C1;
 }
 
+.nav-button--active {
+  text-decoration: underline;
+  text-underline-offset: 8px;
+  text-decoration-thickness: 1px;
+}
+
 .home-main {
   display: flex;
   flex-direction: column;
@@ -422,15 +428,6 @@
   background: #08060d;
   font-weight: bold;
   border: none;
-  cursor: pointer;
-}
-
-.register-login-link {
-  padding: 8px 0;
-  border: none;
-  background: none;
-  border-bottom: 2px solid #101914;
-  font-weight: 600;
   cursor: pointer;
 }
 

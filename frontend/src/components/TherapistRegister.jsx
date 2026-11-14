@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SiteHeader from './SiteHeader';
 
 export default function TherapistRegister({ onNavigate }) {
   const [registration, setRegistration] = useState({
@@ -15,16 +16,7 @@ export default function TherapistRegister({ onNavigate }) {
 
   return (
     <>
-      <header className="register-header">
-        <div className="register-header-left">
-          <button type="button" className="register-logo" onClick={() => onNavigate('go_home')}>••</button>
-          <button type="button" className="register-login-link" onClick={() => onNavigate('go_login')}>Log-in</button>
-        </div>
-        <nav className="register-nav">
-          <button type="button" onClick={() => alert('Settings')}>Settings</button>
-          <button type="button" onClick={() => alert('Help')}>Help</button>
-        </nav>
-      </header>
+      <SiteHeader onNavigate={onNavigate} isLogInActive />
 
       <main className="register-main">
         <aside className="register-art">
