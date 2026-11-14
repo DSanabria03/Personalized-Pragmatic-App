@@ -25,6 +25,14 @@
   cursor: pointer;
 }
 
+.brand-home {
+  display: flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
 .logo-dot {
   position: relative;
   width: 36px;
