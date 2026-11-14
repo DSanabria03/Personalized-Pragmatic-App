@@ -3,13 +3,15 @@ export default function Home({ onNavigate }) {
     <>
       <header className="header">
         <div className="brand" onClick={() => onNavigate('go_home')}>
-          <div className="logo-dot">••</div>
-          <span className="brand-name">Pip</span>
+          <div className="logo-dot">
+            <img src="/resources/icon.png" alt="Pip" />
+          </div>
+          <button onClick={() => onNavigate('go_login')} className="nav-button">Log-in</button>
         </div>
         <nav className="nav-links">
-          <button onClick={() => onNavigate('go_login')} className="nav-button">Log-in</button>
-          <button onClick={() => onNavigate('go_child_login')} className="nav-button">My Pip</button>
           <button onClick={() => alert('Settings')} className="nav-button">Settings</button>
+          <button onClick={() => alert('Help')} className="nav-button">Help</button>
+
         </nav>
       </header>
 

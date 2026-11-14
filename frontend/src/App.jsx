@@ -104,16 +104,6 @@ export default function App() {
         <ChildProfile onNavigate={changeScreen} kids={kids} selectedChildId={selectedChildId} setSelectedChildId={setSelectedChildId} />
       )}
       {currentScreen === 'therapist-activities' && <TherapistActivities onNavigate={changeScreen} />}
-
-      {!isDashboard && (
-        <footer className="footer">
-          <p>Little steps, big things.</p>
-          <div className="footer-links">
-            <a href="#privacy">Privacy</a>
-            <a href="#terms">Terms</a>
-          </div>
-        </footer>
-      )}
     </div>
   );
 }
