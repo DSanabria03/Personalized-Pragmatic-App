@@ -3,6 +3,7 @@ import { useState } from 'react';
 export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
@@ -24,7 +25,7 @@ export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
       if (data.next_screen) {
         setCurrentScreen(data.next_screen);
       } else {
-        onNavigate('go_add_child');
+        onNavigate('go_overview');
       }
     } catch {
       setError('Could not connect to the server');
@@ -59,7 +60,7 @@ export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
 
           <div className="bottom-banner">Log in to guide their next little step.</div>
         </div>
-        
+
         <div className="right-form-container">
           <span className="form-tag">Welcome Back</span>
           <h2 className="form-title">Your next step starts here.</h2>
@@ -76,8 +77,10 @@ export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
             <div className="form-group">
               <label className="form-label">Password</label>
               <div className="password-wrapper">
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required className="input-field" />
-                <button type="button" className="show-btn" onClick={() => alert('Toggle password')}>Show</button>
+                <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required className="input-field" />
+                <button type="button" className="show-btn" onClick={() => setShowPassword((v) => !v)}>
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
               </div>
               <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Forgot password flow'); }} className="forgot-link">Forgot password?</a>
             </div>
@@ -85,7 +88,7 @@ export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
             <button type="submit" className="submit-btn">Log in</button>
           </form>
 
-          <button type="button" className="purple-link register-link" onClick={() => onNavigate('go_register')}>
+          <button type="button" className="purple-link register-link" style={{ background: 'none', border: 'none', cursor: 'pointer', marginTop: '16px', textAlign: 'left' }} onClick={() => onNavigate('go_register')}>
             New to Pip? Create a therapist account
           </button>
 
