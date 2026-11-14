@@ -28,7 +28,7 @@ export default function ChildCode({ onNavigate }) {
 
         <section className="register-content">
           <p className="register-step">CHILD REGISTERED</p>
-          <h2>Dan is ready to explore.</h2>
+          <h2 className="form-title">Dan is ready to explore.</h2>
           <p className="register-description">Share this login code with Dan and their grown-up.</p>
 
           <div style={{ background: '#eaf2ff', padding: '24px', borderRadius: '24px', marginBottom: '24px' }}>
@@ -38,7 +38,14 @@ export default function ChildCode({ onNavigate }) {
           </div>
 
           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-            <button type="button" className="register-submit" style={{ flex: 1, fontSize: '15px', minHeight: '52px' }} onClick={() => alert('Code copied!')}>Copy login code</button>
+            <button
+              type="button"
+              className="register-submit"
+              style={{ flex: 1, fontSize: '15px', minHeight: '52px', marginTop: 0 }}
+              onClick={() => { navigator.clipboard?.writeText('PIP742'); alert('Code copied!'); }}
+            >
+              Copy login code
+            </button>
             <button type="button" onClick={() => alert('Downloading card...')} style={{ flex: 1, border: 'none', background: '#eaf2ff', borderRadius: '999px', fontWeight: 'bold', color: '#555', cursor: 'pointer' }}>Download login card</button>
           </div>
 
@@ -46,7 +53,7 @@ export default function ChildCode({ onNavigate }) {
             <strong>Keep this code safe.</strong><br />Need a new one? Reset it from Dan's profile.<br />The previous code will stop working.
           </div>
 
-          <button type="button" className="register-submit" style={{ width: '100%', marginBottom: '16px' }} onClick={() => onNavigate('go_home')}>
+          <button type="button" className="register-submit" style={{ width: '100%', marginBottom: '16px' }} onClick={() => onNavigate('go_child_profile')}>
             Go to Dan's profile
           </button>
 

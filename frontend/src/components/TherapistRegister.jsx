@@ -32,7 +32,6 @@ export default function TherapistRegister({ onNavigate }) {
             <h1>Small steps.<br />Shared beginnings.</h1>
             <p>Create your account, set up your practice and invite each child at their own pace.</p>
           </div>
-          
           <div className="c3-art-container">
             <img src="/resources/c3.png" alt="Register Characters Stack" className="c3-art-img" />
           </div>
@@ -40,7 +39,7 @@ export default function TherapistRegister({ onNavigate }) {
 
         <section className="register-content">
           <p className="register-step">STEP 1 OF 2 · YOUR PRACTICE</p>
-          <h2>A little about you.</h2>
+          <h2 className="form-title">A little about you.</h2>
           <p className="register-description">Set up the profile children and their grown-ups will see.</p>
 
           <form className="register-form" onSubmit={(e) => { e.preventDefault(); onNavigate('go_add_child'); }}>
@@ -51,7 +50,6 @@ export default function TherapistRegister({ onNavigate }) {
             <label>Display name<input name="displayName" value={registration.displayName} onChange={handleRegistrationChange} placeholder="Dr. Emma" required /></label>
             <label>Work email<input type="email" name="email" value={registration.email} onChange={handleRegistrationChange} placeholder="emma@littlesteps.com" required /></label>
             <label>Password<input type="password" name="password" value={registration.password} onChange={handleRegistrationChange} placeholder="Create a password" minLength={12} required /><small>Use at least 12 characters, including a number.</small></label>
-            
             <label className="register-terms">
               <input type="checkbox" name="acceptedTerms" checked={registration.acceptedTerms} onChange={handleRegistrationChange} required />
               <span>I agree to the Terms of use and Privacy policy.</span>

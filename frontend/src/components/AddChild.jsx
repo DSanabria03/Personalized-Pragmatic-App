@@ -40,7 +40,7 @@ export default function AddChild({ onNavigate }) {
 
         <section className="register-content">
           <p className="register-step">YOUR PRACTICE · ADD A CHILD</p>
-          <h2>A new little explorer.</h2>
+          <h2 className="form-title">A new little explorer.</h2>
           <p className="register-description">Register a child to create their profile and login code.</p>
 
           <form className="register-form" onSubmit={(e) => { e.preventDefault(); onNavigate('go_child_code'); }}>
@@ -66,7 +66,7 @@ export default function AddChild({ onNavigate }) {
             <button type="submit" className="register-submit">Create child profile & login code</button>
           </form>
 
-          <button type="button" className="register-back-link" onClick={() => onNavigate('go_register')}>
+          <button type="button" className="register-back-link" onClick={() => onNavigate('go_children')}>
             Cancel and return to children
           </button>
         </section>
