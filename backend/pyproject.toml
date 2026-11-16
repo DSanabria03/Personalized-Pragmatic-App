@@ -7,4 +7,5 @@ dependencies = [
     "uvicorn[standard]",
     "email-validator",
     "huggingface-hub>=2.4.0",
+    "ollama",
 ]

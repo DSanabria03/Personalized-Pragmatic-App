@@ -5,3 +5,4 @@ pymysql
 cryptography
 python-dotenv
 huggingface_hub
+ollama
