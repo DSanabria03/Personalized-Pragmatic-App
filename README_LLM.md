@@ -144,10 +144,19 @@ uv run python tools/chat_with_pip.py
 ### The backend API (test page: http://localhost:8000/docs)
 | URL | What it does |
 |---|---|
+| `POST /api/register` | Register a therapist using the registration form fields |
+| `POST /api/children` | Create a mock child profile and generate a login code |
+| `GET /api/children` | List the prepared mock children |
+| `GET /api/children/{child_id}` | Get a child profile |
+| `PUT /api/children/{child_id}` | Update a child's focus, support level and weekly goal |
+| `GET /api/children/{child_id}/progress` | Get a child's activity progress |
+| `POST /api/auth/child-login` | Validate a child login code and return the child profile |
 | `GET /api/stories/the_secret_message?language=en` | The story and pictures (without the right answers) |
 | `POST /api/stories/the_secret_message/narrate` | Pip describes a table |
 | `POST /api/stories/the_secret_message/answer` | Checks the child's choice; Pip reacts |
 | `POST /api/stories/the_secret_message/finish` | Pip says goodbye |
+
+Therapist and child profiles use in-memory mock data only. Changes made through these endpoints are lost when the backend restarts; they are not connected to MySQL or intended for real personal data.
 
 ### Settings
 - Model: `qwen2.5:3b` by default. To use another one, start the backend like this:
