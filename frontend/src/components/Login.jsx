@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import SiteHeader from './SiteHeader';
 
-export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+export default function Login({ onNavigate, onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -12,7 +14,7 @@ export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/login', {
+      const response = await fetch(`${API}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -23,11 +25,7 @@ export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
         setError(typeof data.detail === 'string' ? data.detail : 'Incorrect email or password');
         return;
       }
-      if (data.next_screen) {
-        setCurrentScreen(data.next_screen);
-      } else {
-        onNavigate('go_overview');
-      }
+      onLogin();
     } catch {
       setError('Could not connect to the server');
     }

@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import SiteHeader from './SiteHeader';
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function TherapistRegister({ onNavigate }) {
   const [registration, setRegistration] = useState({
     fullName: '', professionalRole: '', practice: '', registrationNumber: '', displayName: '', email: '', password: '', acceptedTerms: false,
   });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRegistrationChange = (event) => {
     const { name, value, checked, type } = event.target;
@@ -12,6 +16,30 @@ export default function TherapistRegister({ onNavigate }) {
       ...current,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registration),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(typeof data.detail === 'string' ? data.detail : 'Could not create your account.');
+        return;
+      }
+      onNavigate('go_login');
+    } catch {
+      setError('Could not connect to the server.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -33,8 +61,9 @@ export default function TherapistRegister({ onNavigate }) {
           <p className="register-step">STEP 1 OF 2 · YOUR PRACTICE</p>
           <h2 className="form-title">A little about you.</h2>
           <p className="register-description">Set up the profile children and their grown-ups will see.</p>
+          {error && <p className="form-error" role="alert">{error}</p>}
 
-          <form className="register-form" onSubmit={(e) => { e.preventDefault(); onNavigate('go_add_child'); }}>
+          <form className="register-form" onSubmit={handleSubmit}>
             <label>Full name<input name="fullName" value={registration.fullName} onChange={handleRegistrationChange} placeholder="Dr. Emma" required /></label>
             <label>Professional role<input name="professionalRole" value={registration.professionalRole} onChange={handleRegistrationChange} placeholder="Speech therapist" required /></label>
             <label>Practice or organisation<input name="practice" value={registration.practice} onChange={handleRegistrationChange} placeholder="Little Steps Therapy" required /></label>
@@ -47,7 +76,9 @@ export default function TherapistRegister({ onNavigate }) {
               <span>I agree to the Terms of use and Privacy policy.</span>
             </label>
 
-            <button type="submit" className="register-submit">Create account</button>
+            <button type="submit" className="register-submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating account…' : 'Create account'}
+            </button>
           </form>
 
           <button type="button" className="register-back-link" onClick={() => onNavigate('go_login')}>Already have an account? Log in</button>

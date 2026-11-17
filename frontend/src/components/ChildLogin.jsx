@@ -1,66 +1,75 @@
 import { useRef, useState } from 'react';
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const CODE_LENGTH = 6;
 
-export default function ChildLogin({ onNavigate }) {
-  const [code, setCode] = useState(Array(CODE_LENGTH).fill(''));
+export default function ChildLogin({ onNavigate, onChildLogin }) {
+  const [characters, setCharacters] = useState(() => Array(CODE_LENGTH).fill(''));
   const [error, setError] = useState('');
-  const inputsRef = useRef([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const inputRefs = useRef([]);
 
-  const handleChange = (index, value) => {
-    const char = value.slice(-1).toUpperCase();
-    if (char && !/^[A-Z0-9]$/.test(char)) return;
-
-    const newCode = [...code];
-    newCode[index] = char;
-    setCode(newCode);
-    setError('');
-
-    // Salta a la siguiente casilla
-    if (char && index < CODE_LENGTH - 1) {
-      inputsRef.current[index + 1].focus();
-    }
-  };
-
-  const handleKeyDown = (index, e) => {
-    // Borrar vuelve a la casilla anterior
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputsRef.current[index - 1].focus();
-    }
-  };
-
-  const handlePaste = (e) => {
-    const pasted = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, CODE_LENGTH);
-    if (!pasted) return;
-    e.preventDefault();
-    const newCode = Array(CODE_LENGTH).fill('');
-    pasted.split('').forEach((c, i) => { newCode[i] = c; });
-    setCode(newCode);
-    inputsRef.current[Math.min(pasted.length, CODE_LENGTH - 1)].focus();
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const fullCode = code.join('');
-    if (fullCode.length < CODE_LENGTH) {
-      setError('Type all 6 characters of your code.');
+  const handleCharacterChange = (index, value) => {
+    const enteredCharacters = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, CODE_LENGTH - index);
+    if (!enteredCharacters) {
+      if (value) return;
+      setCharacters((current) => current.map((character, position) => (position === index ? '' : character)));
       return;
     }
 
+    setCharacters((current) => {
+      const next = [...current];
+      enteredCharacters.split('').forEach((character, offset) => {
+        next[index + offset] = character;
+      });
+      return next;
+    });
+    inputRefs.current[Math.min(index + enteredCharacters.length, CODE_LENGTH - 1)]?.focus();
+  };
+
+  const handlePaste = (index, event) => {
+    const pastedCode = event.clipboardData.getData('text');
+    if (!pastedCode) return;
+    event.preventDefault();
+    handleCharacterChange(index, pastedCode);
+  };
+
+  const handleKeyDown = (index, event) => {
+    if (event.key === 'Backspace' && !characters[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (event.key === 'ArrowLeft' && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (event.key === 'ArrowRight' && index < CODE_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError('');
+    const code = characters.join('');
+    if (code.length !== CODE_LENGTH) {
+      setError('Enter all six characters of your login code.');
+      return;
+    }
+    setIsSubmitting(true);
+
     try {
-      const response = await fetch('http://localhost:8000/api/child-login', {
+      const response = await fetch(`${API}/api/auth/child-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: fullCode }),
+        body: JSON.stringify({ code }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(typeof data.detail === 'string' ? data.detail : 'That code doesn’t look right. Try again!');
+        setError(typeof data.detail === 'string' ? data.detail : 'That code could not be found.');
         return;
       }
-      onNavigate('go_child_setup');
+      onChildLogin({ ...data.child, code });
     } catch {
-      setError('Could not connect to the server');
+      setError('Could not connect to the server.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -94,37 +103,43 @@ export default function ChildLogin({ onNavigate }) {
           <p className="register-step">YOUR NEXT LITTLE DISCOVERY</p>
           <h2>Hello, explorer!</h2>
           <p className="register-description">Type the code your therapist gave you.</p>
+          {error && <p className="form-error" role="alert">{error}</p>}
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#555', display: 'block', marginBottom: '12px', textTransform: 'uppercase' }}>Your login code</label>
-              <div style={{ display: 'flex', gap: '10px' }} onPaste={handlePaste}>
-                {code.map((char, index) => (
+          <form className="register-form" onSubmit={handleSubmit}>
+            <div>
+              <span className="child-code-label" id="child-code-label">Your login code</span>
+              <div className="child-code-inputs" role="group" aria-labelledby="child-code-label">
+                {characters.map((character, index) => (
                   <input
                     key={index}
-                    ref={(el) => (inputsRef.current[index] = el)}
-                    value={char}
-                    onChange={(e) => handleChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    maxLength={2}
-                    autoFocus={index === 0}
-                    aria-label={`Code character ${index + 1}`}
                     className="code-box"
+                    ref={(element) => { inputRefs.current[index] = element; }}
+                    aria-label={`Code character ${index + 1}`}
+                    aria-describedby="child-code-example"
+                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                    autoCapitalize="characters"
+                    inputMode="text"
+                    maxLength={1}
+                    value={character}
+                    onChange={(event) => handleCharacterChange(index, event.target.value)}
+                    onKeyDown={(event) => handleKeyDown(index, event)}
+                    onPaste={(event) => handlePaste(index, event)}
+                    required
                   />
                 ))}
               </div>
-              <small style={{ display: 'block', marginTop: '10px', color: '#666' }}>An example code looks like PIP742.</small>
-              {error && <div style={{ color: 'red', marginTop: '10px', fontSize: '13px' }}>{error}</div>}
+              <small id="child-code-example" style={{ display: 'block', marginTop: '10px', color: '#666' }}>
+                An example code looks like PIP742.
+              </small>
             </div>
-
-            <button type="submit" className="register-submit" style={{ width: '100%', marginBottom: '24px' }}>
-              Let’s go!
+            <button type="submit" className="register-submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Checking code…' : 'Let’s go!'}
             </button>
           </form>
 
-          <div style={{ background: '#eaf2ff', padding: '20px', borderRadius: '16px' }}>
+          <div style={{ background: '#eaf2ff', padding: '20px', borderRadius: '16px', marginTop: '24px' }}>
             <strong style={{ fontSize: '14px', color: '#111' }}>Don’t have a code yet?</strong>
-            <p style={{ fontSize: '13px', color: '#555', marginTop: '4px' }}>Ask your therapist or your grown-up for help. They'll make sure your account is ready.</p>
+            <p style={{ fontSize: '13px', color: '#555', marginTop: '4px' }}>Ask your therapist or your grown-up for help. They’ll make sure your account is ready.</p>
           </div>
         </section>
       </main>
