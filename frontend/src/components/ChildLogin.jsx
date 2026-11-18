@@ -1,7 +1,30 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { api } from '../api';
 
-export default function ChildLogin({ onNavigate }) {
-  const [childCodeInputs] = useState(['P', 'I', 'P', '7', '4', '2']);
+export default function ChildLogin({ onNavigate, onLogin }) {
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef(null);
+  const boxes = Math.max(6, code.length + (code.length < 8 ? 1 : 0)); // PIP742 = 6, longer codes get more boxes
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (code.length < 4) {
+      setError('Please type your whole code.');
+      return;
+    }
+    setError('');
+    setBusy(true);
+    try {
+      const data = await api('/api/children/login', { method: 'POST', body: { code } });
+      onLogin(data); // -> the child's home page
+    } catch (err) {
+      setError(err.status ? err.message : 'Could not connect to the server. Is the backend running?');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <>
@@ -11,8 +34,7 @@ export default function ChildLogin({ onNavigate }) {
           <span style={{ fontWeight: 'bold', borderBottom: '2px solid #101914', paddingBottom: '8px' }}>Log-in</span>
         </div>
         <nav className="register-nav">
-          <button type="button" onClick={() => alert('Settings')}>Settings</button>
-          <button type="button" onClick={() => alert('Help')}>Help</button>
+          <button type="button" onClick={() => onNavigate('go_settings')}>Settings</button>
         </nav>
       </header>
 
@@ -34,25 +56,38 @@ export default function ChildLogin({ onNavigate }) {
           <h2>Hello, explorer!</h2>
           <p className="register-description">Type the code your therapist gave you.</p>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#555', display: 'block', marginBottom: '12px', textTransform: 'uppercase' }}>Your login code</label>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              {childCodeInputs.map((char, index) => (
-                <div key={index} style={{ 
-                  flex: 1, height: '70px', border: '2px solid ' + (index === 0 ? '#6e42c1' : '#d2d9d0'), 
-                  borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+          <form onSubmit={handleSubmit} style={{ marginBottom: '24px' }}>
+            <label htmlFor="child-code" style={{ fontSize: '12px', fontWeight: 'bold', color: '#555', display: 'block', marginBottom: '12px', textTransform: 'uppercase' }}>Your login code</label>
+            {/* One real text field lies invisibly on top of the boxes; the boxes show what was typed. */}
+            <div style={{ position: 'relative', display: 'flex', gap: '10px' }} onClick={() => inputRef.current && inputRef.current.focus()}>
+              {Array.from({ length: boxes }).map((_, index) => (
+                <div key={index} style={{
+                  flex: 1, height: '70px', border: '2px solid ' + (index === code.length ? '#6e42c1' : '#d2d9d0'),
+                  borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '28px', fontWeight: 'bold', fontFamily: 'monospace', background: '#fff'
                 }}>
-                  {char}
+                  {code[index] || ''}
                 </div>
               ))}
+              <input
+                id="child-code"
+                ref={inputRef}
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))}
+                autoFocus
+                autoComplete="off"
+                inputMode="text"
+                aria-label="Your login code"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'text', fontSize: '28px' }}
+              />
             </div>
             <small style={{ display: 'block', marginTop: '10px', color: '#666' }}>An example code looks like PIP742.</small>
-          </div>
+            {error && <div style={{ color: '#b00020', marginTop: '10px', fontSize: '14px' }}>{error}</div>}
 
-          <button type="button" className="register-submit" style={{ width: '100%', marginBottom: '24px' }} onClick={() => onNavigate('go_story')}>
-            Let’s go!
-          </button>
+            <button type="submit" className="register-submit" style={{ width: '100%', marginTop: '20px' }} disabled={busy}>
+              {busy ? '…' : 'Let’s go!'}
+            </button>
+          </form>
 
           <div style={{ background: '#eaf2ff', padding: '20px', borderRadius: '16px' }}>
             <strong style={{ fontSize: '14px', color: '#111' }}>Don’t have a code yet?</strong>

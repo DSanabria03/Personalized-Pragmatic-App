@@ -6,3 +6,5 @@ cryptography
 python-dotenv
 huggingface_hub
 ollama
+httpx
+piper-tts  # optional: free local voice for Pip

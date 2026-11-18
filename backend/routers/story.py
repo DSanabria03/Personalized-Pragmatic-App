@@ -4,7 +4,11 @@ Story API: the frontend calls these while the child plays a story.
     GET  /api/stories/{story_id}?language=en         story + scenes, WITHOUT the correct answers
     POST /api/stories/{story_id}/narrate             Pip tells what happens in a scene
     POST /api/stories/{story_id}/answer              child picked an option -> right or not + Pip reacts
-    POST /api/stories/{story_id}/finish              Pip celebrates at the end
+    POST /api/stories/{story_id}/start               a logged-in child starts playing -> run_id
+    POST /api/stories/{story_id}/finish              Pip celebrates at the end + the results ("Great job" screen)
+
+If a child is logged in (Authorization: Bearer <token>), every answer is saved in the database and the
+results count for their progress and the therapist's dashboard. Pip also uses the child's name.
 
 Stories live in data/stories/<story_id>.json. Text there can be a plain string or {"en": "...", "it": "..."}.
 "pip_role" (story or scene) says which character Pip plays, e.g. the waiter or one of the customers.
@@ -14,10 +18,10 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
 
-from services import llm_service
+from services import accounts, llm_service, progress
 
 router = APIRouter(prefix="/api/stories", tags=["stories"])
 
@@ -50,7 +54,20 @@ def load_story(story_id: str) -> dict:
 
 def localized_scene(scene: dict, lang: str) -> dict:
     """Scene in one language, including the correct answer (backend only!)."""
-    options = [{"id": o["id"], "text": pick(o["text"], lang), "image": o.get("image")} for o in scene["options"]]
+    options = []
+    for o in scene["options"]:
+        reaction = o.get("reaction") or {}
+        options.append({
+            "id": o["id"],
+            "text": pick(o["text"], lang),
+            "image": o.get("image"),
+            "animation": o.get("animation"),          # future: GIF/video of Pip doing this action
+            "reaction": {                              # how the customer reacts when Pip does this
+                "emotion": reaction.get("emotion", "neutral"),
+                "description": pick(reaction.get("description", ""), lang),
+                "says": pick(reaction.get("says", ""), lang),
+            },
+        })
     return {
         "id": scene["id"],
         "speaker": scene["speaker"],
@@ -80,9 +97,19 @@ def find_scene(story: dict, scene_id: str) -> tuple[int, dict]:
     raise HTTPException(404, f"Scene '{scene_id}' not found in story '{story['id']}'")
 
 
+def logged_in_child(authorization: str | None) -> dict | None:
+    """The child who is playing, if the browser sent a child's login token."""
+    user = accounts.user_from_token(authorization)
+    return user["child"] if user and user["role"] == "child" else None
+
+
+def child_name_for(child: dict | None, fallback: str | None) -> str | None:
+    return llm_service.clean_name(child["name"] if child else fallback)
+
+
 def save_answer(entry: dict) -> None:
-    """For now: one line per answer in data/answer_log.jsonl.
-    TODO (backend): save to MySQL instead, so the therapist dashboard can show it."""
+    """Answers of guests (no child logged in) go to data/answer_log.jsonl.
+    Answers of logged-in children are saved in the database (services/progress.py)."""
     entry["timestamp"] = datetime.now(timezone.utc).isoformat()
     with ANSWER_LOG.open("a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
@@ -93,7 +120,7 @@ class NarrateRequest(BaseModel):
     scene_id: str
     language: str = "en"
     pip_name: str = "Pip"
-    child_name: str | None = None   # e.g. "Dan" - TODO: look it up in MySQL from the child's login code
+    child_name: str | None = None   # only used when no child is logged in (otherwise the name comes from the account)
 
 
 class AnswerRequest(BaseModel):
@@ -102,8 +129,19 @@ class AnswerRequest(BaseModel):
     attempt: int = 1           # 1 = first try on this scene
     language: str = "en"
     pip_name: str = "Pip"
-    child_code: str | None = None   # e.g. "PIP742", to link the answer to the child
+    child_code: str | None = None   # old: guests only (logged-in children are known from their token)
     child_name: str | None = None
+    run_id: int | None = None       # from /start, links the answer to this play-through
+
+
+class StartRequest(BaseModel):
+    language: str = "en"
+
+
+class SceneResult(BaseModel):
+    scene_id: str
+    attempts: int = 0
+    solved: bool = False
 
 
 class FinishRequest(BaseModel):
@@ -111,6 +149,8 @@ class FinishRequest(BaseModel):
     pip_name: str = "Pip"
     child_name: str | None = None
     solved_scene_ids: list[str] = []
+    run_id: int | None = None
+    results: list[SceneResult] = []   # for guests; for logged-in children the database is used
 
 
 # ---------- endpoints ----------
@@ -121,7 +161,10 @@ def get_story(story_id: str, language: str = "en"):
     scenes = []
     for raw in story["scenes"]:
         s = localized_scene(raw, lang)
-        scenes.append({k: s[k] for k in ("id", "speaker", "listener", "quote", "question", "image", "options")})
+        public = {k: s[k] for k in ("id", "speaker", "listener", "quote", "question", "image")}
+        # options without reactions: a happy reaction would give the answer away in the browser
+        public["options"] = [{k: o[k] for k in ("id", "text", "image")} for o in s["options"]]
+        scenes.append(public)
     return {
         "id": story["id"],
         "category": story.get("category"),
@@ -133,7 +176,7 @@ def get_story(story_id: str, language: str = "en"):
 
 
 @router.post("/{story_id}/narrate")
-def narrate(story_id: str, req: NarrateRequest):
+def narrate(story_id: str, req: NarrateRequest, authorization: str | None = Header(default=None)):
     lang = check_language(req.language)
     story = load_story(story_id)
     index, raw = find_scene(story, req.scene_id)
@@ -141,18 +184,19 @@ def narrate(story_id: str, req: NarrateRequest):
     previous = localized_scene(story["scenes"][index - 1], lang) if index > 0 else None
     speech = llm_service.narrate_scene(
         lang, req.pip_name, pip_role(story, raw, lang), pick(story["setting"], lang), scene, previous,
-        is_first=(index == 0), child_name=llm_service.clean_name(req.child_name),
+        is_first=(index == 0), child_name=child_name_for(logged_in_child(authorization), req.child_name),
     )
     return {"scene_id": scene["id"], "narration": speech, "speaker": scene["speaker"],
             "listener": scene["listener"], "quote": scene["quote"]}
 
 
 @router.post("/{story_id}/answer")
-def answer(story_id: str, req: AnswerRequest):
+def answer(story_id: str, req: AnswerRequest, authorization: str | None = Header(default=None)):
     lang = check_language(req.language)
     story = load_story(story_id)
     _, raw = find_scene(story, req.scene_id)
     scene = localized_scene(raw, lang)
+    child = logged_in_child(authorization)
 
     picked = next((o for o in scene["options"] if o["id"] == req.child_answer), None)
     if picked is None:
@@ -170,15 +214,20 @@ def answer(story_id: str, req: AnswerRequest):
 
     speech = llm_service.react_to_answer(
         lang, req.pip_name, pip_role(story, raw, lang), scene, picked["text"], outcome, req.attempt,
-        child_name=llm_service.clean_name(req.child_name),
+        reaction=picked["reaction"]["description"],
+        child_name=child_name_for(child, req.child_name),
     )
     scene_done = outcome in ("correct", "reveal")
 
-    save_answer({
-        "child_code": req.child_code, "story_id": story_id, "scene_id": scene["id"], "language": lang,
-        "child_answer": req.child_answer, "is_correct": is_correct, "attempt": req.attempt,
-        "outcome": outcome, "pip_said": speech, "model": llm_service.LLM_MODEL,
-    })
+    if child:   # saved for the child's progress and the therapist's dashboard
+        progress.record_attempt(child["id"], req.run_id, story_id, scene["id"], lang, req.child_answer,
+                                is_correct, req.attempt, outcome, speech)
+    else:
+        save_answer({
+            "child_code": req.child_code, "story_id": story_id, "scene_id": scene["id"], "language": lang,
+            "child_answer": req.child_answer, "is_correct": is_correct, "attempt": req.attempt,
+            "outcome": outcome, "pip_said": speech, "model": llm_service.LLM_MODEL,
+        })
 
     return {
         "is_correct": is_correct,
@@ -187,16 +236,55 @@ def answer(story_id: str, req: AnswerRequest):
         "scene_done": scene_done,            # true -> show "Continue"
         "correct_answer": scene["correct"] if scene_done else None,
         "hidden_meaning": scene["hidden_meaning"] if scene_done else None,
+        # what Pip does and how the customer reacts (shown and spoken before Pip's sentence)
+        "action": {
+            "text": llm_service.as_pip(picked["text"], req.pip_name),
+            "image": picked["image"],
+            "animation": picked["animation"],
+        },
+        "reaction": {"speaker": scene["speaker"], **picked["reaction"]},
+        # for the pause after the first try: helps the therapist / grown-up talk it through with the child
+        "for_grown_up": {"hint": scene["hint"], "hidden_meaning": scene["hidden_meaning"]} if outcome == "retry" else None,
     }
 
 
+@router.post("/{story_id}/start")
+def start(story_id: str, req: StartRequest, authorization: str | None = Header(default=None)):
+    """A logged-in child starts the story: creates a 'run' so all answers of this play-through belong together."""
+    lang = check_language(req.language)
+    load_story(story_id)
+    child = logged_in_child(authorization)
+    if not child:
+        return {"run_id": None, "child": None}
+    return {"run_id": progress.start_run(child["id"], story_id, lang), "child": {"name": child["name"]}}
+
+
 @router.post("/{story_id}/finish")
-def finish(story_id: str, req: FinishRequest):
+def finish(story_id: str, req: FinishRequest, authorization: str | None = Header(default=None)):
     lang = check_language(req.language)
     story = load_story(story_id)
+    child = logged_in_child(authorization)
+    total = len(story["scenes"])
+
+    # The results of this play-through (numbers for the "Great job" screen)
+    summary, before, after = None, None, None
+    if child and req.run_id:
+        before = progress.child_progress(child["id"], lang)
+        summary = progress.finish_run(child["id"], req.run_id, total)
+        after = progress.child_progress(child["id"], lang)
+    if summary is None:
+        summary = progress.summarize([r.model_dump() for r in req.results], total)
+
+    solved_ids = req.solved_scene_ids or [r.scene_id for r in req.results if r.solved]
     meanings = [localized_scene(s, lang)["hidden_meaning"] for s in story["scenes"]
-                if not req.solved_scene_ids or s["id"] in req.solved_scene_ids]
+                if not solved_ids or s["id"] in solved_ids]
     role = pick(story.get("pip_role") or "a helper in the story", lang)
     speech = llm_service.finish_story(lang, req.pip_name, role, pick(story["title"], lang), meanings,
-                                      child_name=llm_service.clean_name(req.child_name))
-    return {"speech": speech}
+                                      child_name=child_name_for(child, req.child_name))
+
+    result = {"speech": speech, "summary": summary, "progress": after, "new_badges": [], "level_up": False}
+    if before and after:
+        had = {b["id"] for b in before["badges"] if b["earned"]}
+        result["new_badges"] = [b for b in after["badges"] if b["earned"] and b["id"] not in had]
+        result["level_up"] = after["level"] > before["level"]
+    return result

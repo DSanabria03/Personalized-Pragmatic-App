@@ -1,41 +1,41 @@
 import { useState } from 'react';
-import SiteHeader from './SiteHeader';
+import { api } from '../api';
 
-export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
+export default function TherapistLogin({ onNavigate, onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
+    setBusy(true);
     try {
-      const response = await fetch('http://localhost:8000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError(typeof data.detail === 'string' ? data.detail : 'Incorrect email or password');
-        return;
-      }
-      if (data.next_screen) {
-        setCurrentScreen(data.next_screen);
-      } else {
-        onNavigate('go_overview');
-      }
-    } catch {
-      setError('Could not connect to the server');
+      const data = await api('/api/therapists/login', { method: 'POST', body: { email, password } });
+      onLogin(data); // -> the therapist's dashboard
+    } catch (err) {
+      setError(err.status ? err.message : 'Could not connect to the server. Is the backend running?');
+    } finally {
+      setBusy(false);
     }
   };
 
   return (
     <>
-      <SiteHeader onNavigate={onNavigate} isLogInActive />
+      <header className="header">
+        <div className="brand" onClick={() => onNavigate('go_home')}>
+          <div className="logo-dot">••</div>
+          <span className="brand-name">Pip</span>
+        </div>
+        <nav className="nav-links">
+          <button onClick={() => onNavigate('go_home')} className="nav-button">Home</button>
+          <button className="nav-button" style={{ fontWeight: 'bold' }}>For therapists</button>
+          <button onClick={() => onNavigate('go_settings')} className="nav-button">Settings</button>
+        </nav>
+      </header>
 
       <main className="login-main">
         <div className="left-card">
@@ -51,7 +51,7 @@ export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
 
           <div className="bottom-banner">Log in to guide their next little step.</div>
         </div>
-
+        
         <div className="right-form-container">
           <span className="form-tag">Welcome Back</span>
           <h2 className="form-title">Your next step starts here.</h2>
@@ -69,17 +69,15 @@ export default function TherapistLogin({ onNavigate, setCurrentScreen }) {
               <label className="form-label">Password</label>
               <div className="password-wrapper">
                 <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required className="input-field" />
-                <button type="button" className="show-btn" onClick={() => setShowPassword((v) => !v)}>
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
+                <button type="button" className="show-btn" onClick={() => setShowPassword((v) => !v)}>{showPassword ? 'Hide' : 'Show'}</button>
               </div>
-              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Forgot password flow'); }} className="forgot-link">Forgot password?</a>
+              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Not available yet in this prototype.'); }} className="forgot-link">Forgot password?</a>
             </div>
 
-            <button type="submit" className="submit-btn">Log in</button>
+            <button type="submit" className="submit-btn" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>
           </form>
 
-          <button type="button" className="purple-link register-link" style={{ background: 'none', border: 'none', cursor: 'pointer', marginTop: '16px', textAlign: 'left' }} onClick={() => onNavigate('go_register')}>
+          <button type="button" className="purple-link register-link" onClick={() => onNavigate('go_register')}>
             New to Pip? Create a therapist account
           </button>
 

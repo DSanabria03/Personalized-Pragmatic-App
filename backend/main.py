@@ -2,7 +2,19 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
+from database import init_db
+from routers.accounts import router as accounts_router
 from routers.story import router as story_router
+from routers.tts import router as tts_router
+
+# Read settings like ELEVENLABS_API_KEY from backend/.env (never upload that file to GitHub!)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+init_db()   # creates backend/data/pip.db with the tables, the first time
 
 app = FastAPI(title="Personalized Pragmatic App")
 
@@ -14,6 +26,8 @@ app.add_middleware(
 )
 
 app.include_router(story_router)   # Pip + LLM story endpoints (routers/story.py)
+app.include_router(tts_router)     # Pip's voice (routers/tts.py)
+app.include_router(accounts_router)  # therapist + child accounts, statistics (routers/accounts.py)
 
 class LoginRequest(BaseModel):
     email: str
@@ -27,6 +41,7 @@ class ScreenTransitionRequest(BaseModel):
 def read_root():
     return {"message": "OK"}
 
+# Old demo login (fixed user). The real accounts are in routers/accounts.py: /api/therapists/login etc.
 @app.post("/api/login")
 def login(credentials: LoginRequest):
     if credentials.email == "user@user.com" and credentials.password == "password":
