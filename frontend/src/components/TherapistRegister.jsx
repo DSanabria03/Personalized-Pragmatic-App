@@ -31,7 +31,13 @@ export default function TherapistRegister({ onNavigate }) {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(typeof data.detail === 'string' ? data.detail : 'Could not create your account.');
+        const detail = Array.isArray(data.detail)
+          ? data.detail.map(({ loc, msg }) => {
+            const field = Array.isArray(loc) ? loc.filter((part) => part !== 'body').join('.') : '';
+            return field ? `${field}: ${msg}` : msg;
+          }).join(' ')
+          : data.detail;
+        setError(typeof detail === 'string' ? detail : 'Could not create your account.');
         return;
       }
       onNavigate('go_login');

@@ -129,7 +129,7 @@ export default function ChildLogin({ onNavigate, onChildLogin }) {
                 ))}
               </div>
               <small id="child-code-example" style={{ display: 'block', marginTop: '10px', color: '#666' }}>
-                An example code looks like PIP742.
+                An example code looks like PIP001.
               </small>
             </div>
             <button type="submit" className="register-submit" disabled={isSubmitting}>

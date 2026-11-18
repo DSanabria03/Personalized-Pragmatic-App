@@ -33,7 +33,7 @@ export default function ChildCode({ onNavigate }) {
 
           <div style={{ background: '#eaf2ff', padding: '24px', borderRadius: '24px', marginBottom: '24px' }}>
             <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#555', letterSpacing: '1px' }}>DAN'S LOGIN CODE</span>
-            <div style={{ fontSize: '36px', fontWeight: '900', fontFamily: 'monospace', letterSpacing: '6px', color: '#111', margin: '10px 0 5px 0' }}>PIP742</div>
+            <div style={{ fontSize: '36px', fontWeight: '900', fontFamily: 'monospace', letterSpacing: '6px', color: '#111', margin: '10px 0 5px 0' }}>PIP001</div>
             <div style={{ fontSize: '13px', color: '#555' }}>Enter this code on the child login screen.</div>
           </div>
 
