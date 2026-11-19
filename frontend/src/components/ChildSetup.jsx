@@ -21,7 +21,7 @@ export default function ChildSetup({ onNavigate, onComplete, initialName = 'Dan'
           <span style={{ fontWeight: 'bold', borderBottom: '2px solid #101914', paddingBottom: '8px' }}>Log-in</span>
         </div>
         <nav className="register-nav">
-          <button type="button" onClick={() => alert('Settings')}>Settings</button>
+          <button type="button" onClick={() => onNavigate('go_settings')}>Settings</button>
           <button type="button" onClick={() => alert('Help')}>Help</button>
         </nav>
       </header>

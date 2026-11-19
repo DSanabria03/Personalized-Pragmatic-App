@@ -1,7 +1,27 @@
 import { useState } from 'react';
+import { api } from '../api';
 
-export default function AddChild({ onNavigate }) {
+export default function AddChild({ onNavigate, therapistName, onCreated }) {
   const [childForm, setChildForm] = useState({ name: '', age: '', parentEmail: '', acceptedPermission: false });
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError('');
+    setBusy(true);
+    try {
+      const child = await api('/api/children', {
+        method: 'POST',
+        body: { name: childForm.name, age: childForm.age, parent_email: childForm.parentEmail },
+      });
+      onCreated(child); // -> shows the new login code
+    } catch (err) {
+      setError(err.status ? err.message : 'Could not connect to the server. Is the backend running?');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleChildFormChange = (event) => {
     const { name, value, checked, type } = event.target;
@@ -19,8 +39,8 @@ export default function AddChild({ onNavigate }) {
           <span style={{ fontWeight: 'bold', borderBottom: '2px solid #101914', paddingBottom: '8px' }}>Add a child</span>
         </div>
         <nav className="register-nav">
-          <button type="button" onClick={() => alert('Settings')}>Settings</button>
-          <button type="button" onClick={() => alert('Help')}>Help</button>
+          <button type="button" onClick={() => onNavigate('go_dashboard')}>Dashboard</button>
+          <button type="button" onClick={() => onNavigate('go_settings')}>Settings</button>
         </nav>
       </header>
 
@@ -40,10 +60,11 @@ export default function AddChild({ onNavigate }) {
 
         <section className="register-content">
           <p className="register-step">YOUR PRACTICE · ADD A CHILD</p>
-          <h2 className="form-title">A new little explorer.</h2>
+          <h2>A new little explorer.</h2>
           <p className="register-description">Register a child to create their profile and login code.</p>
 
-          <form className="register-form" onSubmit={(e) => { e.preventDefault(); onNavigate('go_child_code'); }}>
+          {error && <div style={{ color: '#b00020', marginBottom: '10px', fontSize: '14px' }}>{error}</div>}
+          <form className="register-form" onSubmit={handleSubmit}>
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
               <label>First name or nickname<input name="name" value={childForm.name} onChange={handleChildFormChange} placeholder="Dan" required /></label>
               <label>Age<input name="age" value={childForm.age} onChange={handleChildFormChange} placeholder="8 years" required /></label>
@@ -55,7 +76,7 @@ export default function AddChild({ onNavigate }) {
 
             <div style={{ background: '#e5f0ff', padding: '16px', borderRadius: '16px', margin: '10px 0' }}>
               <span style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>Assigned therapist</span>
-              <div style={{ fontWeight: 'bold', color: '#111', marginTop: '4px' }}>Dr. Emma · Little Steps Therapy</div>
+              <div style={{ fontWeight: 'bold', color: '#111', marginTop: '4px' }}>{therapistName || 'You'}</div>
             </div>
 
             <label className="register-terms">
@@ -63,10 +84,10 @@ export default function AddChild({ onNavigate }) {
               <span>I confirm I have parent or guardian permission to create and manage this child's account.</span>
             </label>
 
-            <button type="submit" className="register-submit">Create child profile & login code</button>
+            <button type="submit" className="register-submit" disabled={busy}>{busy ? 'Creating…' : 'Create child profile & login code'}</button>
           </form>
 
-          <button type="button" className="register-back-link" onClick={() => onNavigate('go_children')}>
+          <button type="button" className="register-back-link" onClick={() => onNavigate('go_dashboard')}>
             Cancel and return to children
           </button>
         </section>

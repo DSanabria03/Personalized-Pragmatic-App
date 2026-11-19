@@ -8,4 +8,10 @@ dependencies = [
     "email-validator",
     "huggingface-hub>=2.4.0",
     "ollama",
+    "httpx",
+    "python-dotenv",
 ]
+
+[project.optional-dependencies]
+# Free local voice for Pip (Piper). Install with:  uv sync --extra voice
+voice = ["piper-tts"]
