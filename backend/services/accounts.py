@@ -2,6 +2,8 @@
 Accounts: therapists log in with email + password, children log in with a code (like PIP742)
 that their therapist creates for them. No child email or password needed.
 
+The data is fake and lives in memory (mock_data.py): no database for now.
+
 Passwords are never stored: only a secure "hash" (PBKDF2 with a random salt, from Python's standard library).
 After logging in, the browser gets a random token and sends it with every request
 ("Authorization: Bearer <token>"), so the backend knows who is playing.
@@ -12,7 +14,8 @@ import hmac
 import re
 import secrets
 
-from database import db
+import mock_data as store
+from mock_data import CHILDREN, LOCK, THERAPISTS, TOKENS
 
 PBKDF2_ROUNDS = 200_000
 
@@ -42,9 +45,9 @@ def check_password(password: str, stored: str) -> bool:
         return False
 
 
-def _new_token(con, role: str, user_id: int) -> str:
+def _new_token(role: str, user_id: int) -> str:
     token = secrets.token_urlsafe(32)
-    con.execute("INSERT INTO tokens (token, role, user_id) VALUES (?, ?, ?)", (token, role, user_id))
+    TOKENS[token] = {"role": role, "user_id": user_id, "created_at": store.now()}
     return token
 
 
@@ -58,6 +61,11 @@ def _child_public(row) -> dict:
             "therapist_id": row["therapist_id"], "created_at": row["created_at"]}
 
 
+def _find(table: list[dict], **fields) -> dict | None:
+    """The first row whose fields all match, e.g. _find(CHILDREN, code="PIP001")."""
+    return next((row for row in table if all(row.get(k) == v for k, v in fields.items())), None)
+
+
 # ---------------------------------------------------------------- therapists
 def register_therapist(full_name, display_name, email, password, role="", practice="", registration_number=""):
     email = (email or "").strip().lower()
@@ -67,36 +75,46 @@ def register_therapist(full_name, display_name, email, password, role="", practi
         raise AccountError("The password needs at least 12 characters, including a number.")
     if not (full_name or "").strip():
         raise AccountError("Please enter your name.")
-    with db() as con:
-        if con.execute("SELECT 1 FROM therapists WHERE email = ?", (email,)).fetchone():
+    with LOCK:
+        if _find(THERAPISTS, email=email):
             raise AccountError("This email is already registered. Please log in.", 409)
-        cur = con.execute(
-            "INSERT INTO therapists (full_name, display_name, role, practice, registration_number, email, password_hash)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (full_name.strip(), (display_name or full_name).strip(), (role or "").strip(), (practice or "").strip(),
-             (registration_number or "").strip(), email, hash_password(password)),
-        )
-        row = con.execute("SELECT * FROM therapists WHERE id = ?", (cur.lastrowid,)).fetchone()
-        return {"token": _new_token(con, "therapist", row["id"]), "role": "therapist", "therapist": _therapist_public(row)}
+        row = {
+            "id": store.new_therapist_id(),
+            "full_name": full_name.strip(),
+            "display_name": (display_name or full_name).strip(),
+            "role": (role or "").strip(),
+            "practice": (practice or "").strip(),
+            "registration_number": (registration_number or "").strip(),
+            "email": email,
+            "password_hash": hash_password(password),
+            "created_at": store.now(),
+        }
+        THERAPISTS.append(row)
+        return {"token": _new_token("therapist", row["id"]), "role": "therapist", "therapist": _therapist_public(row)}
 
 
 def login_therapist(email: str, password: str):
-    with db() as con:
-        row = con.execute("SELECT * FROM therapists WHERE email = ?", ((email or "").strip().lower(),)).fetchone()
-        if not row or not check_password(password or "", row["password_hash"]):
-            raise AccountError("Email or password is not correct.", 401)
-        return {"token": _new_token(con, "therapist", row["id"]), "role": "therapist", "therapist": _therapist_public(row)}
+    row = _find(THERAPISTS, email=(email or "").strip().lower())
+    if not row or not check_password(password or "", row["password_hash"]):
+        raise AccountError("Email or password is not correct.", 401)
+    return {"token": _new_token("therapist", row["id"]), "role": "therapist", "therapist": _therapist_public(row)}
 
 
 # ---------------------------------------------------------------- children
 CODE_PREFIX = "PIP"
 
 
-def _new_child_code(con) -> str:
+def _normalize_code(code: str) -> str:
+    """'pip-001 ' -> 'PIP001'"""
+    return re.sub(r"[\s-]", "", code or "").upper()
+
+
+def _new_child_code() -> str:
     """PIP + 3 digits (like PIP742). If those run out, 4 digits."""
+    used = {child["code"] for child in CHILDREN}
     for digits in (3, 3, 3, 3, 3, 4, 4, 4, 4, 5):
         code = CODE_PREFIX + "".join(secrets.choice("0123456789") for _ in range(digits))
-        if not con.execute("SELECT 1 FROM children WHERE code = ?", (code,)).fetchone():
+        if code not in used:
             return code
     raise AccountError("Could not create a new code, please try again.", 500)
 
@@ -104,35 +122,39 @@ def _new_child_code(con) -> str:
 def create_child(therapist_id: int, name: str, age: str = "", parent_email: str = ""):
     if not (name or "").strip():
         raise AccountError("Please enter the child's first name or nickname.")
-    with db() as con:
-        code = _new_child_code(con)
-        cur = con.execute(
-            "INSERT INTO children (therapist_id, name, age, parent_email, code) VALUES (?, ?, ?, ?, ?)",
-            (therapist_id, name.strip()[:40], (age or "").strip()[:20], (parent_email or "").strip(), code),
-        )
-        return _child_public(con.execute("SELECT * FROM children WHERE id = ?", (cur.lastrowid,)).fetchone())
+    with LOCK:
+        row = {
+            "id": store.new_child_id(),
+            "therapist_id": therapist_id,
+            "name": name.strip()[:40],
+            "age": str(age or "").strip()[:20],
+            "parent_email": (parent_email or "").strip(),
+            "code": _new_child_code(),
+            "created_at": store.now(),
+        }
+        CHILDREN.append(row)
+        return _child_public(row)
 
 
 def reset_child_code(therapist_id: int, child_id: int):
-    with db() as con:
-        child = _own_child(con, therapist_id, child_id)
-        code = _new_child_code(con)
-        con.execute("UPDATE children SET code = ? WHERE id = ?", (code, child["id"]))
-        con.execute("DELETE FROM tokens WHERE role = 'child' AND user_id = ?", (child["id"],))  # old logins stop
-        return _child_public(con.execute("SELECT * FROM children WHERE id = ?", (child["id"],)).fetchone())
+    with LOCK:
+        child = _own_child(therapist_id, child_id)
+        child["code"] = _new_child_code()
+        for token, t in list(TOKENS.items()):          # old logins stop working
+            if t["role"] == "child" and t["user_id"] == child["id"]:
+                del TOKENS[token]
+        return _child_public(child)
 
 
 def login_child(code: str):
-    code = re.sub(r"\s", "", code or "").upper()
-    with db() as con:
-        row = con.execute("SELECT * FROM children WHERE code = ?", (code,)).fetchone()
-        if not row:
-            raise AccountError("We couldn't find this code. Ask your therapist or your grown-up for help.", 401)
-        return {"token": _new_token(con, "child", row["id"]), "role": "child", "child": _child_public(row)}
+    row = _find(CHILDREN, code=_normalize_code(code))
+    if not row:
+        raise AccountError("We couldn't find this code. Ask your therapist or your grown-up for help.", 401)
+    return {"token": _new_token("child", row["id"]), "role": "child", "child": _child_public(row)}
 
 
-def _own_child(con, therapist_id: int, child_id: int):
-    row = con.execute("SELECT * FROM children WHERE id = ? AND therapist_id = ?", (child_id, therapist_id)).fetchone()
+def _own_child(therapist_id: int, child_id: int):
+    row = _find(CHILDREN, id=child_id, therapist_id=therapist_id)
     if not row:
         raise AccountError("Child not found.", 404)
     return row
@@ -144,17 +166,15 @@ def user_from_token(authorization: str | None):
     if not authorization or not authorization.lower().startswith("bearer "):
         return None
     token = authorization.split(" ", 1)[1].strip()
-    with db() as con:
-        t = con.execute("SELECT * FROM tokens WHERE token = ?", (token,)).fetchone()
-        if not t:
-            return None
-        if t["role"] == "therapist":
-            row = con.execute("SELECT * FROM therapists WHERE id = ?", (t["user_id"],)).fetchone()
-            return {"role": "therapist", "token": token, "therapist": _therapist_public(row)} if row else None
-        row = con.execute("SELECT * FROM children WHERE id = ?", (t["user_id"],)).fetchone()
-        return {"role": "child", "token": token, "child": _child_public(row)} if row else None
+    t = TOKENS.get(token)
+    if not t:
+        return None
+    if t["role"] == "therapist":
+        row = _find(THERAPISTS, id=t["user_id"])
+        return {"role": "therapist", "token": token, "therapist": _therapist_public(row)} if row else None
+    row = _find(CHILDREN, id=t["user_id"])
+    return {"role": "child", "token": token, "child": _child_public(row)} if row else None
 
 
 def logout(token: str):
-    with db() as con:
-        con.execute("DELETE FROM tokens WHERE token = ?", (token,))
+    TOKENS.pop(token, None)

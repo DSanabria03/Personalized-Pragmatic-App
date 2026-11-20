@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from database import init_db
+import mock_data
 from routers.accounts import router as accounts_router
 from routers.story import router as story_router
 from routers.tts import router as tts_router
@@ -14,7 +14,7 @@ try:
 except ImportError:
     pass
 
-init_db()   # creates backend/data/pip.db with the tables, the first time
+mock_data.reset()   # fake data in memory (mock_data.py): no database for now
 
 app = FastAPI(title="Personalized Pragmatic App")
 

@@ -182,13 +182,13 @@ uv run python tools/chat_with_pip.py
 | `backend/services/llm_service.py` | **The AI part:** Pip's instructions, examples, the call to Ollama, the safety check, backup sentences |
 | `backend/routers/story.py` | The story API (load story, start, Pip narrates, check answer, finish + results) |
 | `backend/data/stories/the_secret_message.json` | The restaurant story in English + Italian: scenes, options, right answer, hidden meaning, clue, and each option's customer **reaction** and `animation` (empty for now: put Pip's GIF path here later). New stories = new file like this |
-| `backend/database.py` | **The database** (SQLite, built into Python, file `backend/data/pip.db`, created automatically): therapists, children, logins, story runs, every answer |
+| `backend/mock_data.py` | **The data, fake and in memory** (no database for now): demo therapist, children `PIP001`–`PIP006` with an invented play history, logins, story runs, every answer. Recreated every time the backend starts |
 | `backend/services/accounts.py` | Therapist accounts (passwords stored as secure hashes), child accounts with login codes, who is logged in |
 | `backend/services/progress.py` | **Statistics:** XP, levels, badges, the week, the therapist's overview and per-child details |
 | `backend/routers/accounts.py` | The accounts + statistics API |
 | `backend/routers/tts.py` | Pip's voice: Piper (free, local) or ElevenLabs (optional), returns the audio |
 | `backend/tools/chat_with_pip.py` | Practice script: chat with Pip in Terminal / PowerShell |
-| `backend/main.py` | Changed: creates the database and switches on the new APIs |
+| `backend/main.py` | Changed: loads the fake data and switches on the new APIs |
 | `backend/.env.example` | Template for your private settings (voices, ElevenLabs key); copy it to `backend/.env` |
 | `backend/.python-version` | Makes uv use Python 3.13 (needed for the Piper voice) |
 | `frontend/src/App.jsx` | Changed: all screens, who is logged in, the settings |
@@ -239,9 +239,9 @@ Therapist and child profiles use in-memory mock data only. Changes made through 
 - **Reactions:** the customers' reactions in the story file are a first draft: please check them (and the new picture options from Gaia).
 - **Design:** the new screens use the app's colours but are simpler than Figma: restyle as you like (the logic can stay).
 - **Italian:** the AI makes small grammar mistakes in Italian; an Italian speaker should check.
-- **MySQL (optional):** the app uses SQLite (no installation, works for everyone). To use MySQL instead, only
-  `backend/database.py` and the SQL in `services/accounts.py` / `services/progress.py` need to change.
-- **Privacy:** `backend/data/pip.db` contains children's names and results: it stays on the laptop and is in `.gitignore`.
+- **Demo accounts:** therapist `emma@littlesteps.com` / `littlesteps2026`; children `PIP001` (Dan) … `PIP006` (Sophie).
+- **No database (for now):** everything is kept in memory (`backend/mock_data.py`), so it is lost when the backend
+  stops. To use a real database later, only `mock_data.py` and `services/accounts.py` / `services/progress.py` change.
   "Forgot password" is not built yet.
 
 ## 6. Moving it to main

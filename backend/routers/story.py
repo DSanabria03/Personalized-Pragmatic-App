@@ -7,7 +7,7 @@ Story API: the frontend calls these while the child plays a story.
     POST /api/stories/{story_id}/start               a logged-in child starts playing -> run_id
     POST /api/stories/{story_id}/finish              Pip celebrates at the end + the results ("Great job" screen)
 
-If a child is logged in (Authorization: Bearer <token>), every answer is saved in the database and the
+If a child is logged in (Authorization: Bearer <token>), every answer is saved (in memory, mock_data.py) and the
 results count for their progress and the therapist's dashboard. Pip also uses the child's name.
 
 Stories live in data/stories/<story_id>.json. Text there can be a plain string or {"en": "...", "it": "..."}.
@@ -109,7 +109,7 @@ def child_name_for(child: dict | None, fallback: str | None) -> str | None:
 
 def save_answer(entry: dict) -> None:
     """Answers of guests (no child logged in) go to data/answer_log.jsonl.
-    Answers of logged-in children are saved in the database (services/progress.py)."""
+    Answers of logged-in children are saved in memory (services/progress.py)."""
     entry["timestamp"] = datetime.now(timezone.utc).isoformat()
     with ANSWER_LOG.open("a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
@@ -150,7 +150,7 @@ class FinishRequest(BaseModel):
     child_name: str | None = None
     solved_scene_ids: list[str] = []
     run_id: int | None = None
-    results: list[SceneResult] = []   # for guests; for logged-in children the database is used
+    results: list[SceneResult] = []   # for guests; for logged-in children mock_data.py is used
 
 
 # ---------- endpoints ----------

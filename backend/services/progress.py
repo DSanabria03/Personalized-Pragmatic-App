@@ -1,5 +1,6 @@
 """
-Progress and statistics, all calculated from what the child actually did (tables attempts + story_runs).
+Progress and statistics, all calculated from what the child actually did (ATTEMPTS + STORY_RUNS in mock_data.py,
+fake data kept in memory: no database for now).
 
 For the child (friendly, "small steps, not scores"):
     XP for every table completed (more when found on the first try), levels every 100 XP, badges.
@@ -9,7 +10,8 @@ For the therapist:
 
 from datetime import date, datetime, timedelta, timezone
 
-from database import db
+import mock_data as store
+from mock_data import ATTEMPTS, CHILDREN, LOCK, STORY_RUNS
 
 XP_FIRST_TRY = 15
 XP_SECOND_TRY = 10
@@ -47,22 +49,27 @@ def xp_for_scene(attempts_needed: int, solved: bool) -> int:
 
 # ---------------------------------------------------------------- while playing
 def start_run(child_id: int, story_id: str, language: str) -> int:
-    with db() as con:
-        return con.execute("INSERT INTO story_runs (child_id, story_id, language) VALUES (?, ?, ?)",
-                           (child_id, story_id, language)).lastrowid
+    with LOCK:
+        run = {"id": store.new_run_id(), "child_id": child_id, "story_id": story_id, "language": language,
+               "started_at": store.now(), "finished_at": None, "scenes_total": 0, "scenes_first_try": 0,
+               "scenes_solved": 0, "total_attempts": 0, "xp_earned": 0}
+        STORY_RUNS.append(run)
+        return run["id"]
+
+
+def _find_run(run_id, child_id) -> dict | None:
+    return next((r for r in STORY_RUNS if r["id"] == run_id and r["child_id"] == child_id), None)
 
 
 def record_attempt(child_id, run_id, story_id, scene_id, language, choice, is_correct, attempt_number, outcome, pip_said):
-    with db() as con:
-        if run_id is not None and not con.execute(
-                "SELECT 1 FROM story_runs WHERE id = ? AND child_id = ?", (run_id, child_id)).fetchone():
+    with LOCK:
+        if run_id is not None and not _find_run(run_id, child_id):
             run_id = None          # not this child's run: still save the attempt, without the run
-        con.execute(
-            "INSERT INTO attempts (child_id, run_id, story_id, scene_id, language, choice, is_correct,"
-            " attempt_number, outcome, pip_said) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (child_id, run_id, story_id, scene_id, language, choice, int(bool(is_correct)), attempt_number, outcome,
-             pip_said),
-        )
+        ATTEMPTS.append({
+            "id": store.new_attempt_id(), "child_id": child_id, "run_id": run_id, "story_id": story_id,
+            "scene_id": scene_id, "language": language, "choice": choice, "is_correct": int(bool(is_correct)),
+            "attempt_number": attempt_number, "outcome": outcome, "pip_said": pip_said, "created_at": store.now(),
+        })
 
 
 def summarize(results: list[dict], total_scenes: int) -> dict:
@@ -75,12 +82,10 @@ def summarize(results: list[dict], total_scenes: int) -> dict:
             "attempts": attempts, "xp_earned": xp}
 
 
-def _run_results(con, run_id: int) -> list[dict]:
+def _run_results(run_id: int) -> list[dict]:
     """Per scene of a run: how many tries until it was done, and whether the child found it."""
-    rows = con.execute("SELECT scene_id, attempt_number, is_correct, outcome FROM attempts WHERE run_id = ? ORDER BY id",
-                       (run_id,)).fetchall()
     scenes: dict[str, dict] = {}
-    for r in rows:
+    for r in (a for a in ATTEMPTS if a["run_id"] == run_id):
         s = scenes.setdefault(r["scene_id"], {"scene_id": r["scene_id"], "attempts": 0, "solved": False, "done": False})
         if s["done"]:
             continue
@@ -94,35 +99,40 @@ def _run_results(con, run_id: int) -> list[dict]:
 
 def finish_run(child_id: int, run_id: int, total_scenes: int) -> dict | None:
     """Closes the run and saves its results. Returns the summary, or None if the run isn't this child's."""
-    with db() as con:
-        run = con.execute("SELECT * FROM story_runs WHERE id = ? AND child_id = ?", (run_id, child_id)).fetchone()
+    with LOCK:
+        run = _find_run(run_id, child_id)
         if not run:
             return None
-        summary = summarize(_run_results(con, run_id), total_scenes)
-        con.execute(
-            "UPDATE story_runs SET finished_at = datetime('now'), scenes_total = ?, scenes_first_try = ?,"
-            " scenes_solved = ?, total_attempts = ?, xp_earned = ? WHERE id = ?",
-            (total_scenes, summary["first_try"], summary["solved"], summary["attempts"], summary["xp_earned"], run_id),
-        )
+        summary = summarize(_run_results(run_id), total_scenes)
+        run.update(finished_at=store.now(), scenes_total=total_scenes, scenes_first_try=summary["first_try"],
+                   scenes_solved=summary["solved"], total_attempts=summary["attempts"], xp_earned=summary["xp_earned"])
         return summary
 
 
 # ---------------------------------------------------------------- the child's progress
-def _measures(con, child_id: int) -> dict:
-    runs = con.execute("SELECT * FROM story_runs WHERE child_id = ? AND finished_at IS NOT NULL", (child_id,)).fetchall()
-    days = {r["created_at"][:10] for r in con.execute("SELECT created_at FROM attempts WHERE child_id = ?", (child_id,))}
-    minutes = 0.0
-    for r in runs:
-        start, end = _parse(r["started_at"]), _parse(r["finished_at"])
-        if start and end:
-            minutes += min(max((end - start).total_seconds() / 60, 0), 60)
+def _finished_runs(child_id: int) -> list[dict]:
+    return [r for r in STORY_RUNS if r["child_id"] == child_id and r["finished_at"]]
+
+
+def _attempts_of(child_id: int) -> list[dict]:
+    return [a for a in ATTEMPTS if a["child_id"] == child_id]
+
+
+def _run_minutes(run: dict) -> float:
+    start, end = _parse(run["started_at"]), _parse(run["finished_at"])
+    return min(max((end - start).total_seconds() / 60, 0), 60) if start and end else 0.0
+
+
+def _measures(child_id: int) -> dict:
+    runs = _finished_runs(child_id)
+    days = {a["created_at"][:10] for a in _attempts_of(child_id)}
     return {
         "xp": sum(r["xp_earned"] for r in runs),
         "stories_completed": len(runs),
         "secret_messages": sum(r["scenes_solved"] for r in runs),
         "perfect_stories": sum(1 for r in runs if r["scenes_total"] and r["scenes_first_try"] == r["scenes_total"]),
         "active_days": len(days),
-        "practice_minutes": round(minutes),
+        "practice_minutes": round(sum(_run_minutes(r) for r in runs)),
         "days": days,
     }
 
@@ -140,8 +150,7 @@ def _week(days: set[str], today: date | None = None) -> list[dict]:
 
 def child_progress(child_id: int, language: str = "en") -> dict:
     lang = "it" if language == "it" else "en"
-    with db() as con:
-        m = _measures(con, child_id)
+    m = _measures(child_id)
     badges = []
     for b in BADGES:
         value = m[b["measure"]]
@@ -172,35 +181,30 @@ def child_progress(child_id: int, language: str = "en") -> dict:
 def therapist_overview(therapist_id: int) -> dict:
     today = datetime.now(timezone.utc).date()
     monday = (today - timedelta(days=today.weekday())).isoformat()
-    with db() as con:
-        children = con.execute("SELECT * FROM children WHERE therapist_id = ? ORDER BY name COLLATE NOCASE",
-                               (therapist_id,)).fetchall()
-        rows, per_day, active_ids, week_runs, week_minutes = [], [0] * 7, set(), 0, 0.0
-        for c in children:
-            m = _measures(con, c["id"])
-            runs_week = con.execute(
-                "SELECT * FROM story_runs WHERE child_id = ? AND finished_at IS NOT NULL AND finished_at >= ?",
-                (c["id"], monday)).fetchall()
-            for r in runs_week:
-                per_day[_parse(r["finished_at"]).weekday()] += 1
-                start, end = _parse(r["started_at"]), _parse(r["finished_at"])
-                week_minutes += min(max((end - start).total_seconds() / 60, 0), 60)
-            if runs_week or any(d >= monday for d in m["days"]):
-                active_ids.add(c["id"])
-            week_runs += len(runs_week)
-            stats = con.execute(
-                "SELECT COUNT(*) AS n, SUM(scenes_first_try) AS first, SUM(scenes_total) AS total"
-                " FROM story_runs WHERE child_id = ? AND finished_at IS NOT NULL", (c["id"],)).fetchone()
-            last = con.execute("SELECT MAX(created_at) AS last FROM attempts WHERE child_id = ?", (c["id"],)).fetchone()
-            rows.append({
-                "id": c["id"], "name": c["name"], "age": c["age"], "code": c["code"],
-                "stories_completed": m["stories_completed"], "activities_week": len(runs_week),
-                "secret_messages": m["secret_messages"],
-                "first_try_rate": round(100 * (stats["first"] or 0) / stats["total"]) if stats["total"] else None,
-                "level": m["xp"] // XP_PER_LEVEL + 1,
-                "practice_minutes": m["practice_minutes"],
-                "last_active": last["last"],
-            })
+    children = sorted((c for c in CHILDREN if c["therapist_id"] == therapist_id), key=lambda c: c["name"].lower())
+    rows, per_day, active_ids, week_runs, week_minutes = [], [0] * 7, set(), 0, 0.0
+    for c in children:
+        m = _measures(c["id"])
+        runs = _finished_runs(c["id"])
+        runs_week = [r for r in runs if r["finished_at"] >= monday]
+        for r in runs_week:
+            per_day[_parse(r["finished_at"]).weekday()] += 1
+            week_minutes += _run_minutes(r)
+        if runs_week or any(d >= monday for d in m["days"]):
+            active_ids.add(c["id"])
+        week_runs += len(runs_week)
+        first = sum(r["scenes_first_try"] for r in runs)
+        total = sum(r["scenes_total"] for r in runs)
+        last = max((a["created_at"] for a in _attempts_of(c["id"])), default=None)
+        rows.append({
+            "id": c["id"], "name": c["name"], "age": c["age"], "code": c["code"],
+            "stories_completed": m["stories_completed"], "activities_week": len(runs_week),
+            "secret_messages": m["secret_messages"],
+            "first_try_rate": round(100 * first / total) if total else None,
+            "level": m["xp"] // XP_PER_LEVEL + 1,
+            "practice_minutes": m["practice_minutes"],
+            "last_active": last,
+        })
     return {
         "children_registered": len(children),
         "children_active_week": len(active_ids),
@@ -212,21 +216,22 @@ def therapist_overview(therapist_id: int) -> dict:
 
 
 def child_detail(therapist_id: int, child_id: int) -> dict | None:
-    with db() as con:
-        child = con.execute("SELECT * FROM children WHERE id = ? AND therapist_id = ?", (child_id, therapist_id)).fetchone()
-        if not child:
-            return None
-        runs = con.execute(
-            "SELECT * FROM story_runs WHERE child_id = ? AND finished_at IS NOT NULL ORDER BY id DESC LIMIT 20",
-            (child_id,)).fetchall()
-        scene_rows = con.execute(
-            "SELECT scene_id, COUNT(*) AS tries, SUM(is_correct) AS correct,"
-            " SUM(CASE WHEN attempt_number = 1 AND is_correct = 1 THEN 1 ELSE 0 END) AS first_try,"
-            " SUM(CASE WHEN attempt_number = 1 THEN 1 ELSE 0 END) AS played"
-            " FROM attempts WHERE child_id = ? GROUP BY scene_id ORDER BY scene_id", (child_id,)).fetchall()
-        recent = con.execute(
-            "SELECT scene_id, choice, is_correct, attempt_number, outcome, pip_said, language, created_at"
-            " FROM attempts WHERE child_id = ? ORDER BY id DESC LIMIT 30", (child_id,)).fetchall()
+    child = next((c for c in CHILDREN if c["id"] == child_id and c["therapist_id"] == therapist_id), None)
+    if not child:
+        return None
+    runs = sorted(_finished_runs(child_id), key=lambda r: r["id"], reverse=True)[:20]
+    attempts = _attempts_of(child_id)
+
+    scenes: dict[str, dict] = {}
+    for a in attempts:
+        s = scenes.setdefault(a["scene_id"], {"scene_id": a["scene_id"], "tries": 0, "first_try": 0, "played": 0})
+        s["tries"] += 1
+        if a["attempt_number"] == 1:
+            s["played"] += 1
+            s["first_try"] += a["is_correct"]
+
+    recent = sorted(attempts, key=lambda a: a["id"], reverse=True)[:30]
+    recent_fields = ("scene_id", "choice", "is_correct", "attempt_number", "outcome", "pip_said", "language", "created_at")
     return {
         "child": {"id": child["id"], "name": child["name"], "age": child["age"], "code": child["code"],
                   "created_at": child["created_at"]},
@@ -237,6 +242,6 @@ def child_detail(therapist_id: int, child_id: int) -> dict | None:
         "scenes": [{"scene_id": s["scene_id"], "times_played": s["played"], "tries": s["tries"],
                     "first_try": s["first_try"],
                     "first_try_rate": round(100 * s["first_try"] / s["played"]) if s["played"] else None}
-                   for s in scene_rows],
-        "recent_attempts": [dict(r) for r in recent],
+                   for s in sorted(scenes.values(), key=lambda s: s["scene_id"])],
+        "recent_attempts": [{k: a[k] for k in recent_fields} for a in recent],
     }
