@@ -12,7 +12,12 @@ import { API, api } from '../api';
 // Usage in App.jsx:
 //   <StoryPlay storyId="the_secret_message" language="en" voice therapistPause
 //     onExit={() => ...} onFinished={(result) => ...} />
-// Optional: pipIdle / pipTalking = paths to Pip's GIFs (e.g. "/resources/pip_idle.gif").
+// Optional: pipIdle / pipTalking = pictures of the chosen Pip (PNG now, GIFs later).
+//
+// Layout (wide screens): customer | picture | Pip, like in the story pictures (customer left, waiter right),
+// so each speech bubble sits on the side of the character who speaks. Narrow screens: one column.
+// Animations (CSS only, no new drawings): Pip "walks in" with the chosen action, the picture and the
+// customer's face react to the emotion (happy jumps, confused wobbles, sad droops, surprised pops).
 
 const UI = {
   en: {
@@ -54,6 +59,8 @@ const UI = {
 };
 
 const EMOJI = { happy: '😊', sad: '😢', confused: '😕', surprised: '😲', neutral: '🙂' };
+// Little sign that floats up next to the customer's face when they react.
+const EMOTION_SIGN = { happy: '✨', sad: '💧', confused: '❓', surprised: '❗', neutral: '' };
 const ACTION_MS = 1600; // how long Pip's action is shown before the customer reacts (later: length of the GIF)
 
 const post = (path, body) => api(path, { method: 'POST', body });
@@ -62,8 +69,8 @@ export default function StoryPlay({
   storyId = 'the_secret_message',
   language = 'en',
   pipName = 'Pip',
-  pipIdle = '/resources/pip_idle.gif',
-  pipTalking = '/resources/pip_talking.gif',
+  pipIdle = null, // the chosen Pip's picture (e.g. /resources/pip-milo.png); none -> Pip's logo face
+  pipTalking = null, // optional other picture (e.g. a GIF) while Pip speaks; none -> pipIdle
   childName = null, // only for guests: a logged-in child's name comes from their account
   voice = true, // false: no sound, the sentences are only shown
   therapistPause = true, // pause after Pip's first guiding question so the grown-up can talk it through
@@ -397,58 +404,71 @@ export default function StoryPlay({
         </div>
       </header>
 
-      {/* Stage: picture + the two speakers */}
-      <section style={styles.stage}>
+      {/* Stage: customer | picture | Pip, like in the pictures (customer left, waiter right) */}
+      <section className={`sp-stage ${phase === 'finished' || !scene ? 'sp-stage-solo' : ''}`} style={styles.stage}>
         {phase !== 'finished' && scene && (
-          <div style={{ position: 'relative', alignSelf: 'center' }}>
+          <div className="sp-scene">
             {action ? (
-              // Pip doing the chosen action. Later: <img src={action.animation}> with Pip's GIF.
-              <figure className="sp-action" style={{ margin: 0, textAlign: 'center' }}>
-                <img src={action.animation || action.image} alt="" style={styles.sceneImg} />
-                <figcaption style={styles.actionCaption}>▶ {action.text}</figcaption>
+              // Pip doing the chosen action: walks in, then the picture reacts with the customer's emotion.
+              // Later: <img src={action.animation}> with Pip's GIF (the "animation" field in the story file).
+              <figure key={action.image} className="sp-action">
+                <img src={action.animation || action.image} alt={action.text}
+                  className={customerLine && customerLine.emotion ? `sp-react-${customerLine.emotion}` : ''}
+                  style={styles.sceneImg} />
+                <figcaption style={styles.actionCaption}>
+                  <span className="sp-action-badge">{pipName}</span> {action.text}
+                </figcaption>
               </figure>
             ) : (
-              scene.image && <img src={scene.image} alt="" style={styles.sceneImg} />
+              scene.image && <img key={scene.image} src={scene.image} alt="" className="sp-scene-in" style={styles.sceneImg} />
             )}
           </div>
         )}
 
-        <div style={styles.speakers}>
-          {/* Pip on the left */}
-          <div style={styles.speakerRow}>
-            <div className={`sp-avatar ${speaking === 'pip' ? 'sp-speaking' : ''}`} style={{ ...styles.avatar, background: '#efe9ff' }}>
-              {pipImageOk ? (
-                <img src={speaking === 'pip' ? pipTalking : pipIdle} alt={pipName} style={styles.avatarImg}
-                  onError={() => setPipImageOk(false)} />
-              ) : (
-                <span style={{ fontWeight: 'bold', color: '#6e42c1' }}>{pipName}</span>
-              )}
-            </div>
-            <div>
-              <div style={styles.name}>{pipName}</div>
-              <div className={`sp-bubble sp-left ${speaking === 'pip' ? 'sp-bubble-active' : ''}`}>
-                {thinking ? <span className="sp-dots" aria-label="Pip is thinking"><i /><i /><i /></span> : pipLine}
-              </div>
-            </div>
-          </div>
-
-          {/* The customer on the right */}
-          {customerLine && (
-            <div style={{ ...styles.speakerRow, flexDirection: 'row-reverse', textAlign: 'right' }}>
-              <div className={`sp-avatar ${speaking === 'customer' ? 'sp-speaking' : ''}`} style={{ ...styles.avatar, background: '#fff3e0' }}>
-                <span style={{ fontSize: customerLine.emotion ? '34px' : '24px', fontWeight: 'bold', color: '#b26a00' }}>
-                  {customerLine.emotion ? EMOJI[customerLine.emotion] || EMOJI.neutral : customerLine.name.charAt(0)}
+        {/* The customer, on the left (where they sit in the picture) */}
+        {phase !== 'finished' && scene && (
+          <div className="sp-speaker sp-customer">
+            <div className="sp-face-wrap">
+              {/* new key per reaction = the face's animation plays again (keys must differ from the sign's) */}
+              <div key={customerLine ? `face-${customerLine.text}` : 'face-quiet'}
+                className={`sp-avatar ${speaking === 'customer' ? 'sp-speaking' : ''} ${customerLine && customerLine.emotion ? `sp-emo-${customerLine.emotion}` : ''}`}
+                style={{ ...styles.avatar, background: '#fff3e0' }}>
+                <span style={{ fontSize: customerLine && customerLine.emotion ? '40px' : '28px', fontWeight: 'bold', color: '#b26a00' }}>
+                  {customerLine && customerLine.emotion ? EMOJI[customerLine.emotion] || EMOJI.neutral : scene.speaker.charAt(0)}
                 </span>
               </div>
-              <div>
-                <div style={styles.name}>{customerLine.name}</div>
-                <div className={`sp-bubble sp-right ${speaking === 'customer' ? 'sp-bubble-active' : ''}`}>
+              {customerLine && EMOTION_SIGN[customerLine.emotion] && (
+                <span key={`sign-${customerLine.text}`} className="sp-sign" aria-hidden="true">{EMOTION_SIGN[customerLine.emotion]}</span>
+              )}
+            </div>
+            <div style={styles.name}>{customerLine ? customerLine.name : scene.speaker}</div>
+            {customerLine && (
+              <>
+                <div className={`sp-bubble sp-up sp-bubble-customer ${customerLine.emotion ? `sp-bubble-${customerLine.emotion}` : ''} ${speaking === 'customer' ? 'sp-bubble-active' : ''}`}>
                   “{customerLine.text}”
                 </div>
                 {customerLine.note && <div style={styles.note}>{customerLine.note}</div>}
-              </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Pip, on the right (where the waiter stands in the picture) */}
+        <div className="sp-speaker sp-pip">
+          <div className="sp-face-wrap">
+            <div className={`sp-avatar ${speaking === 'pip' ? 'sp-speaking' : ''}`} style={{ ...styles.avatar, background: '#efe9ff' }}>
+              {pipIdle && pipImageOk ? (
+                <img src={speaking === 'pip' && pipTalking ? pipTalking : pipIdle} alt={pipName} style={styles.avatarImg}
+                  onError={() => setPipImageOk(false)} />
+              ) : (
+                <img src="/resources/icon.png" alt={pipName} style={styles.logoFace} />
+              )}
             </div>
-          )}
+          </div>
+          <div style={styles.name}>{pipName}</div>
+          <div className={`sp-bubble sp-up sp-bubble-pip ${speaking === 'pip' ? 'sp-bubble-active' : ''}`}>
+            {thinking ? <span className="sp-dots" aria-label="Pip is thinking"><i /><i /><i /></span> : pipLine}
+          </div>
         </div>
       </section>
 
@@ -519,27 +539,87 @@ export default function StoryPlay({
   );
 }
 
-// Speech bubbles, the "speaking" glow and the thinking dots.
+// Layout of the stage, speech bubbles, the "speaking" glow, the thinking dots and the action/emotion animations.
 const CSS = `
+/* Stage: customer | picture | Pip on wide screens, one column on narrow ones */
+.sp-stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-areas: "customer scene pip"; align-items: start; gap: 20px; }
+.sp-stage-solo { grid-template-columns: minmax(0, 1fr); grid-template-areas: "pip"; }
+.sp-scene { grid-area: scene; text-align: center; align-self: center; }
+.sp-customer { grid-area: customer; }
+.sp-pip { grid-area: pip; }
+.sp-speaker { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
+.sp-stage-solo .sp-speaker .sp-bubble { max-width: 640px; }
+@media (max-width: 860px) {
+  .sp-stage { grid-template-columns: minmax(0, 1fr); grid-template-areas: "scene" "pip" "customer"; }
+}
+
+/* Speech bubbles, with a tail pointing up at the character who speaks */
 .sp-bubble { position: relative; background: #fff; border: 3px solid #e5e1d8; border-radius: 20px; padding: 14px 18px;
-  font-size: 18px; line-height: 1.4; min-height: 28px; max-width: 560px; transition: border-color .2s, box-shadow .2s; }
-.sp-left::before, .sp-right::before { content: ''; position: absolute; top: 18px; border: 10px solid transparent; }
-.sp-left::before { left: -21px; border-right-color: #e5e1d8; }
-.sp-right::before { right: -21px; border-left-color: #e5e1d8; }
-.sp-bubble-active { border-color: #6e42c1; box-shadow: 0 0 0 4px rgba(110, 66, 193, .15); }
-.sp-left.sp-bubble-active::before { border-right-color: #6e42c1; }
-.sp-right.sp-bubble-active { border-color: #e08a00; box-shadow: 0 0 0 4px rgba(224, 138, 0, .15); }
-.sp-right.sp-bubble-active::before { border-left-color: #e08a00; }
+  font-size: 18px; line-height: 1.4; min-height: 28px; width: 100%; box-sizing: border-box; text-align: left;
+  margin-top: 12px; transition: border-color .2s, box-shadow .2s; animation: sp-pop .25s ease-out; }
+.sp-up::before { content: ''; position: absolute; top: -23px; left: 50%; margin-left: -10px;
+  border: 10px solid transparent; border-bottom-color: #e5e1d8; transition: border-color .2s; }
+.sp-bubble-pip.sp-bubble-active { border-color: #6e42c1; box-shadow: 0 0 0 4px rgba(110, 66, 193, .15); }
+.sp-bubble-pip.sp-bubble-active::before { border-bottom-color: #6e42c1; }
+.sp-bubble-customer.sp-bubble-active { border-color: #e08a00; box-shadow: 0 0 0 4px rgba(224, 138, 0, .15); }
+.sp-bubble-customer.sp-bubble-active::before { border-bottom-color: #e08a00; }
+/* the customer's bubble takes the colour of their feeling */
+.sp-bubble-happy { background: #effaf2; } .sp-bubble-sad { background: #eef4fb; }
+.sp-bubble-confused, .sp-bubble-surprised { background: #fff7e8; }
+
+/* Faces */
+.sp-face-wrap { position: relative; }
 .sp-avatar { transition: transform .2s; }
 .sp-speaking { animation: sp-bounce .6s ease-in-out infinite alternate; }
 @keyframes sp-bounce { from { transform: translateY(0) scale(1); } to { transform: translateY(-4px) scale(1.05); } }
+.sp-sign { position: absolute; top: -6px; right: -14px; font-size: 26px; animation: sp-sign 1.8s ease-out forwards; }
+@keyframes sp-sign { 0% { opacity: 0; transform: translateY(10px) scale(.6); } 25% { opacity: 1; transform: translateY(0) scale(1.15); }
+  75% { opacity: 1; transform: translateY(-6px) scale(1); } 100% { opacity: 0; transform: translateY(-14px) scale(1); } }
+
+/* The customer's face reacts to what Pip did */
+.sp-emo-happy { animation: sp-jump .5s ease-out 2; }
+@keyframes sp-jump { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-14px) scale(1.06); } }
+.sp-emo-confused { animation: sp-wobble .9s ease-in-out 2; }
+@keyframes sp-wobble { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
+.sp-emo-sad { animation: sp-droop 1.2s ease-out forwards; }
+@keyframes sp-droop { to { transform: translateY(6px) scale(.94); filter: saturate(.6); } }
+.sp-emo-surprised { animation: sp-startle .45s ease-out; }
+@keyframes sp-startle { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 70% { transform: scale(.95); } 100% { transform: scale(1); } }
+/* while speaking, the bounce wins over the feeling (both use transform) */
+.sp-speaking.sp-emo-happy, .sp-speaking.sp-emo-confused, .sp-speaking.sp-emo-sad, .sp-speaking.sp-emo-surprised {
+  animation: sp-bounce .6s ease-in-out infinite alternate; }
+
+/* Pip does the chosen action: comes in from Pip's side (right) with little steps */
+.sp-scene-in { animation: sp-pop .4s ease-out; }
+.sp-action { margin: 0; animation: sp-walk-in 1.1s ease-out; }
+@keyframes sp-walk-in { 0% { transform: translateX(70px); opacity: 0; } 20% { opacity: 1; }
+  30% { transform: translateX(45px) translateY(-6px); } 45% { transform: translateX(30px) translateY(0); }
+  60% { transform: translateX(15px) translateY(-6px); } 80% { transform: translateX(4px) translateY(0); }
+  100% { transform: translateX(0); } }
+.sp-action figcaption { animation: sp-caption .5s ease-out .5s both; }
+@keyframes sp-caption { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.sp-action-badge { display: inline-block; background: #6e42c1; color: #fff; border-radius: 999px; padding: 2px 10px;
+  font-size: 13px; letter-spacing: .5px; margin-right: 4px; vertical-align: middle; }
+/* ...then the picture shows how the customer feels */
+.sp-react-happy { animation: sp-jump .5s ease-out 2; }
+.sp-react-confused { animation: sp-shake .6s ease-in-out; }
+.sp-react-surprised { animation: sp-shake .4s ease-in-out; }
+@keyframes sp-shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.sp-react-sad { animation: sp-dim 1.2s ease-out forwards; }
+@keyframes sp-dim { to { filter: saturate(.55) brightness(.95); } }
+
 .sp-dots i { display: inline-block; width: 8px; height: 8px; margin: 0 3px; border-radius: 50%; background: #6e42c1;
   animation: sp-dot 1s infinite ease-in-out; }
 .sp-dots i:nth-child(2) { animation-delay: .15s; } .sp-dots i:nth-child(3) { animation-delay: .3s; }
 @keyframes sp-dot { 0%, 80%, 100% { opacity: .2; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-4px); } }
-.sp-action { animation: sp-pop .4s ease-out; }
 @keyframes sp-pop { from { transform: scale(.92); opacity: .4; } to { transform: scale(1); opacity: 1; } }
 .sp-talk { animation: sp-pop .3s ease-out; }
+
+/* Children (or grown-ups) who get dizzy from motion: no movement, only the colours */
+@media (prefers-reduced-motion: reduce) {
+  .sp-stage *, .sp-stage *::before { animation: none !important; transition: none !important; }
+}
 `;
 
 const styles = {
@@ -548,15 +628,14 @@ const styles = {
   setting: { color: '#666', letterSpacing: '1.5px', fontSize: '12px', marginTop: '2px' },
   dot: { width: '28px', height: '8px', borderRadius: '4px', display: 'inline-block' },
   exit: { border: '2px solid #d2d9d0', background: '#fff', borderRadius: '999px', padding: '6px 14px', cursor: 'pointer' },
-  stage: { background: '#f7f5ef', borderRadius: '24px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' },
-  sceneImg: { maxHeight: '300px', maxWidth: '100%', objectFit: 'contain', borderRadius: '16px' },
+  stage: { background: '#f7f5ef', borderRadius: '24px', padding: '24px', overflow: 'hidden' },
+  sceneImg: { maxHeight: '320px', maxWidth: '100%', objectFit: 'contain', borderRadius: '16px' },
   actionCaption: { marginTop: '8px', fontWeight: 'bold', fontSize: '18px', color: '#6e42c1' },
-  speakers: { display: 'flex', flexDirection: 'column', gap: '14px' },
-  speakerRow: { display: 'flex', alignItems: 'flex-start', gap: '16px' },
-  avatar: { width: '84px', height: '84px', borderRadius: '50%', flex: '0 0 84px', display: 'flex', alignItems: 'center',
+  avatar: { width: '96px', height: '96px', borderRadius: '50%', display: 'flex', alignItems: 'center',
     justifyContent: 'center', overflow: 'hidden' },
-  avatarImg: { width: '100%', height: '100%', objectFit: 'contain' },
-  name: { fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', color: '#666', margin: '0 0 6px 4px', textTransform: 'uppercase' },
+  avatarImg: { width: '82%', height: '82%', objectFit: 'contain' },
+  logoFace: { width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.5) translateY(9%)' },
+  name: { fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', color: '#666', margin: '8px 0 0', textTransform: 'uppercase' },
   note: { fontSize: '14px', color: '#8a5a00', marginTop: '6px', fontStyle: 'italic' },
   talk: { background: '#fff8e1', border: '2px solid #ffd77a', borderRadius: '20px', padding: '18px 20px' },
   grownUp: { background: '#fff', borderRadius: '12px', padding: '10px 14px', fontSize: '14px' },

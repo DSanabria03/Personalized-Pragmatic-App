@@ -145,6 +145,7 @@ export default function App() {
           voice={settings.voice}
           therapistPause={settings.grownUpPause}
           pipName={pipDisplayName(session && session.pip)}
+          pipIdle={getPip(session && session.pip)?.img}
           onExit={() => go(childOrHome)}
           onFinished={(result) => { setLastResult(result); go('story-done'); }}
         />
