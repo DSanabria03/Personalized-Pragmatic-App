@@ -44,6 +44,8 @@ pnpm-debug.log*
 *.sqlite
 *.sqlite3
 backend/data/answer_log.jsonl
+backend/data/tts_cache/
+backend/data/piper_voices/
 
 # Logs and temporary files
 *.log
