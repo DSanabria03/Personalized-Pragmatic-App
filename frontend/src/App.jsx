@@ -15,6 +15,12 @@ import TherapistLogin from './components/Login';
 import TherapistRegister from './components/TherapistRegister';
 import { getPip } from './data/mockData';
 
+// The chosen Pip's name as Pip says it in the story: "MILO" (card label) -> "Milo". No Pip chosen -> "Pip".
+function pipDisplayName(pipId) {
+  const name = getPip(pipId)?.name;
+  return name ? name.charAt(0) + name.slice(1).toLowerCase() : 'Pip';
+}
+
 // Which screen each button ("action") opens.
 const ACTIONS = {
   go_home: 'home',
@@ -138,7 +144,7 @@ export default function App() {
           language={settings.language}
           voice={settings.voice}
           therapistPause={settings.grownUpPause}
-          pipName={getPip(session && session.pip)?.name || 'Pip'}
+          pipName={pipDisplayName(session && session.pip)}
           onExit={() => go(childOrHome)}
           onFinished={(result) => { setLastResult(result); go('story-done'); }}
         />

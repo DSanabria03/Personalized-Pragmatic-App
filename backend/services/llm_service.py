@@ -140,10 +140,38 @@ EXAMPLE_WORDS = ["anna", "leo", "teddy", "toy shop", "puzzle", "negozio di gioca
 ABOUT_THE_CHILD = ["the child", "the kid", "il bambino", "la bambina", "il bimbo", "la bimba"]
 
 
-def check_speech(speech: str, max_sentences: int, forbidden: list[str], required: list[str] = ()) -> str | None:
+DEFAULT_PIP = "Pip"
+# "I'm Milly", "I am Milly", "sono Milly", "mi chiamo Milly": the name Pip gives itself
+# ("ci sono Mike" = "there is Mike", not Pip's name)
+SAYS_OWN_NAME = re.compile(r"\b(?:I'm|I am|my name is|(?<![Cc]i )sono|mi chiamo)\s+([A-ZÀ-Ý][\w'-]*)")
+
+
+def with_pip_name(text: str, pip_name: str) -> str:
+    """The examples and the story files say "Pip". If the child chose another Pip (e.g. MILO), use that name
+    everywhere, otherwise the small model mixes the two names up ("Thanks for helping Pip and Mike")."""
+    if not text or pip_name == DEFAULT_PIP:
+        return text
+    return re.sub(rf"\b{DEFAULT_PIP}\b", pip_name, text)
+
+
+def wrong_name(speech: str, pip_name: str) -> str | None:
+    """Pip calls itself by another name, or says "Pip" although the child chose another one."""
+    for name in SAYS_OWN_NAME.findall(speech):
+        if name.lower() != pip_name.lower():
+            return name
+    if pip_name != DEFAULT_PIP and re.search(rf"\b{DEFAULT_PIP}\b", speech):
+        return DEFAULT_PIP
+    return None
+
+
+def check_speech(speech: str, max_sentences: int, forbidden: list[str], required: list[str] = (),
+                 pip_name: str = DEFAULT_PIP) -> str | None:
     """Returns a reason if the answer is not usable, or None if it's fine."""
     if not speech:
         return "empty"
+    other = wrong_name(speech, pip_name)
+    if other:
+        return f"uses the wrong name for Pip: {other!r}"
     lower = speech.lower()
     for word in EXAMPLE_WORDS:
         if re.search(rf"\b{re.escape(word)}\b", lower):
@@ -166,7 +194,9 @@ def check_speech(speech: str, max_sentences: int, forbidden: list[str], required
 
 def _ask(lang, pip_name, role, job, text, fallback, max_sentences, forbidden=(), required=()):
     """Ask the model what Pip says. Two tries, then the prepared sentence."""
-    example_question, example_answer = EXAMPLES[job]
+    # Everything the model reads (and the prepared sentence) uses the chosen Pip's name, never "Pip" + another name.
+    example_question, example_answer = (with_pip_name(part, pip_name) for part in EXAMPLES[job])
+    text, fallback, role = (with_pip_name(part, pip_name) for part in (text, fallback, role))
     messages = [
         {"role": "system", "content": system_prompt(lang, pip_name, role)},
         {"role": "user", "content": example_question},
@@ -189,7 +219,7 @@ def _ask(lang, pip_name, role, job, text, fallback, max_sentences, forbidden=(),
         except Exception as error:  # Ollama off, model not downloaded, timeout, odd output...
             print(f"[llm] using fallback sentence ({type(error).__name__}: {error})")
             return fallback
-        problem = check_speech(speech, max_sentences, list(forbidden), list(required))
+        problem = check_speech(speech, max_sentences, list(forbidden), list(required), pip_name)
         if problem is None:
             return speech
         print(f"[llm] answer rejected ({problem}): {speech}")
