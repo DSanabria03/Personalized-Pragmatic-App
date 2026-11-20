@@ -1,9 +1,8 @@
 import { useRef, useState } from 'react';
-
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { api } from '../api';
 const CODE_LENGTH = 6;
 
-export default function ChildLogin({ onNavigate, onChildLogin }) {
+export default function ChildLogin({ onNavigate, onLogin }) {
   const [characters, setCharacters] = useState(() => Array(CODE_LENGTH).fill(''));
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,19 +54,10 @@ export default function ChildLogin({ onNavigate, onChildLogin }) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API}/api/auth/child-login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError(typeof data.detail === 'string' ? data.detail : 'That code could not be found.');
-        return;
-      }
-      onChildLogin({ ...data.child, code });
-    } catch {
-      setError('Could not connect to the server.');
+      const data = await api('/api/children/login', { method: 'POST', body: { code } });
+      onLogin(data); // -> the child's home page
+    } catch (err) {
+      setError(err.status ? err.message : 'Could not connect to the server. Is the backend running?');
     } finally {
       setIsSubmitting(false);
     }
@@ -81,8 +71,7 @@ export default function ChildLogin({ onNavigate, onChildLogin }) {
           <span style={{ fontWeight: 'bold', borderBottom: '2px solid #101914', paddingBottom: '8px' }}>Log-in</span>
         </div>
         <nav className="register-nav">
-          <button type="button" onClick={() => alert('Settings')}>Settings</button>
-          <button type="button" onClick={() => alert('Help')}>Help</button>
+          <button type="button" onClick={() => onNavigate('go_settings')}>Settings</button>
         </nav>
       </header>
 
@@ -129,7 +118,7 @@ export default function ChildLogin({ onNavigate, onChildLogin }) {
                 ))}
               </div>
               <small id="child-code-example" style={{ display: 'block', marginTop: '10px', color: '#666' }}>
-                An example code looks like PIP742.
+                An example code looks like PIP001.
               </small>
             </div>
             <button type="submit" className="register-submit" disabled={isSubmitting}>

@@ -77,7 +77,7 @@ EXAMPLES = {
         "Look, Anna is standing next to the teddy bears and looking at the price. Let's listen to what she says to me.",
     ),
     "next": (
-        "Continue the story. Thank the child for the last help, then notice someone new who needs you. "
+        "Continue the story. Thank your helper for the last help, then notice someone new who needs you. "
         "Say what you see. End by saying we should listen to what the customer says to you. Maximum 3 sentences.\n"
         "What happened before: Pip wrapped the teddy bear and Anna went home happy.\n"
         "What you see now: A boy is standing at the puzzle shelf. The puzzle box is too high for him.\nCustomer: Leo",
@@ -88,28 +88,33 @@ EXAMPLES = {
         "Your helper gave you the right idea. Talk to your helper with \"you\". Thank them happily, say what the customer really meant, "
         "and say what you do now. Maximum 3 sentences.\n"
         "Customer: Anna\nAnna said to you: This teddy bear is so soft.\n"
+        "You did your helper's idea, and then: Anna smiles.\n"
         "What Anna really meant: I would like to buy this teddy bear.\n"
         "What you do now: Pip wraps the teddy bear for Anna.",
         "Yes, thank you, helper! Anna wasn't only talking about how soft it is, she wanted to buy the teddy bear. "
         "I'm wrapping it for her right now!",
     ),
     "retry": (
-        "Your helper's idea does not fit yet. Talk to your helper with \"you\". Imagine out loud doing their idea, "
-        "and ask one simple question about how the customer would feel. Do not give the answer. Maximum 2 sentences.\n"
+        "Your helper's idea does not fit yet. You already did it and saw how the customer reacted. "
+        "Talk to your helper with \"you\": notice the customer's reaction kindly, then ask ONE simple question "
+        "about what the customer really wants. Do not give the answer. Maximum 2 sentences.\n"
         "Customer: Anna\nAnna said to you: This teddy bear is so soft.\n"
-        "Your helper's idea: I put the teddy bear back on the shelf.",
-        "Hmm, you think I should put the teddy bear back on the shelf? Would Anna be happy then? What do you think she wants?",
+        "You did your helper's idea, and then: Anna looks sad.\n"
+        "Your helper's idea: Pip puts the teddy bear back on the shelf.",
+        "Oh, Anna looks sad now. Why do you think she told me the teddy bear is so soft? What could she want?",
     ),
     "hint": (
         "Your helper tried again and it still does not fit. Talk to your helper with \"you\". Encourage them and give the clue in your own words. "
         "Do not give the answer. Maximum 2 sentences.\n"
-        "Customer: Anna\nAnna said to you: This teddy bear is so soft.\nClue: Anna keeps hugging the teddy bear.",
+        "Customer: Anna\nAnna said to you: This teddy bear is so soft.\n"
+        "You did your helper's idea, and then: Anna looks confused.\nClue: Anna keeps hugging the teddy bear.",
         "You're thinking so hard, thank you! Here's a clue: Anna keeps hugging the teddy bear, what could she want?",
     ),
     "reveal": (
         "Your helper tried many times. Talk to your helper with \"you\". Say kindly that we figured it out together, say what the customer really meant "
-        "and what you do now, and thank the child for trying so hard. Maximum 3 sentences.\n"
+        "and what you do now, and thank them for trying so hard. Maximum 3 sentences.\n"
         "Customer: Anna\nAnna said to you: This teddy bear is so soft.\n"
+        "You did your helper's idea, and then: Anna looks confused.\n"
         "What Anna really meant: I would like to buy this teddy bear.\nWhat you do now: Pip wraps the teddy bear for Anna.",
         "We figured it out together! Anna really wanted to buy the teddy bear, so I'm wrapping it for her. "
         "Thank you for trying so hard!",
@@ -135,10 +140,38 @@ EXAMPLE_WORDS = ["anna", "leo", "teddy", "toy shop", "puzzle", "negozio di gioca
 ABOUT_THE_CHILD = ["the child", "the kid", "il bambino", "la bambina", "il bimbo", "la bimba"]
 
 
-def check_speech(speech: str, max_sentences: int, forbidden: list[str], required: list[str] = ()) -> str | None:
+DEFAULT_PIP = "Pip"
+# "I'm Milly", "I am Milly", "sono Milly", "mi chiamo Milly": the name Pip gives itself
+# ("ci sono Mike" = "there is Mike", not Pip's name)
+SAYS_OWN_NAME = re.compile(r"\b(?:I'm|I am|my name is|(?<![Cc]i )sono|mi chiamo)\s+([A-ZÀ-Ý][\w'-]*)")
+
+
+def with_pip_name(text: str, pip_name: str) -> str:
+    """The examples and the story files say "Pip". If the child chose another Pip (e.g. MILO), use that name
+    everywhere, otherwise the small model mixes the two names up ("Thanks for helping Pip and Mike")."""
+    if not text or pip_name == DEFAULT_PIP:
+        return text
+    return re.sub(rf"\b{DEFAULT_PIP}\b", pip_name, text)
+
+
+def wrong_name(speech: str, pip_name: str) -> str | None:
+    """Pip calls itself by another name, or says "Pip" although the child chose another one."""
+    for name in SAYS_OWN_NAME.findall(speech):
+        if name.lower() != pip_name.lower():
+            return name
+    if pip_name != DEFAULT_PIP and re.search(rf"\b{DEFAULT_PIP}\b", speech):
+        return DEFAULT_PIP
+    return None
+
+
+def check_speech(speech: str, max_sentences: int, forbidden: list[str], required: list[str] = (),
+                 pip_name: str = DEFAULT_PIP) -> str | None:
     """Returns a reason if the answer is not usable, or None if it's fine."""
     if not speech:
         return "empty"
+    other = wrong_name(speech, pip_name)
+    if other:
+        return f"uses the wrong name for Pip: {other!r}"
     lower = speech.lower()
     for word in EXAMPLE_WORDS:
         if re.search(rf"\b{re.escape(word)}\b", lower):
@@ -161,7 +194,9 @@ def check_speech(speech: str, max_sentences: int, forbidden: list[str], required
 
 def _ask(lang, pip_name, role, job, text, fallback, max_sentences, forbidden=(), required=()):
     """Ask the model what Pip says. Two tries, then the prepared sentence."""
-    example_question, example_answer = EXAMPLES[job]
+    # Everything the model reads (and the prepared sentence) uses the chosen Pip's name, never "Pip" + another name.
+    example_question, example_answer = (with_pip_name(part, pip_name) for part in EXAMPLES[job])
+    text, fallback, role = (with_pip_name(part, pip_name) for part in (text, fallback, role))
     messages = [
         {"role": "system", "content": system_prompt(lang, pip_name, role)},
         {"role": "user", "content": example_question},
@@ -184,7 +219,7 @@ def _ask(lang, pip_name, role, job, text, fallback, max_sentences, forbidden=(),
         except Exception as error:  # Ollama off, model not downloaded, timeout, odd output...
             print(f"[llm] using fallback sentence ({type(error).__name__}: {error})")
             return fallback
-        problem = check_speech(speech, max_sentences, list(forbidden), list(required))
+        problem = check_speech(speech, max_sentences, list(forbidden), list(required), pip_name)
         if problem is None:
             return speech
         print(f"[llm] answer rejected ({problem}): {speech}")
@@ -231,7 +266,7 @@ def _with_name(text: str, child_name: str | None) -> str:
     return text
 
 
-def _as_pip(option_text: str, pip_name: str) -> str:
+def as_pip(option_text: str, pip_name: str) -> str:
     """'The waiter brings them the bill.' -> 'Pip brings them the bill.' so the idea is about Pip."""
     for waiter in ("The waiter", "the waiter", "Il cameriere", "il cameriere"):
         option_text = option_text.replace(waiter, pip_name)
@@ -273,11 +308,13 @@ def narrate_scene(lang, pip_name, role, setting, scene, previous_scene=None, is_
     return _ask(lang, pip_name, role, job, text, fallback, max_s, forbidden, required=[scene["speaker"]])
 
 
-def react_to_answer(lang, pip_name, role, scene, picked_text, outcome, attempt, child_name=None):
+def react_to_answer(lang, pip_name, role, scene, picked_text, outcome, attempt, child_name=None, reaction=""):
     """Explainer + motivator. outcome is one of: "correct", "retry", "hint", "reveal"."""
     f = FALLBACK[lang]
     instruction = EXAMPLES[outcome][0].split("\n")[0]
     who = f"Customer: {scene['speaker']}\n{scene['speaker']} said to you: {scene['quote']}\n"
+    if reaction:
+        who += f"You did your helper's idea, and then: {reaction}\n"
     forbidden = []
     if outcome == "correct":
         text = (instruction + "\n" + who +
@@ -285,7 +322,7 @@ def react_to_answer(lang, pip_name, role, scene, picked_text, outcome, attempt, 
                 f"What you do now: {scene['after_right_action']}")
         fallback, max_s = f["correct"].format(meaning=scene["hidden_meaning"]), 3
     elif outcome == "retry":
-        text = instruction + "\n" + who + f"Your helper's idea: {_as_pip(picked_text, pip_name)}"
+        text = instruction + "\n" + who + f"Your helper's idea: {as_pip(picked_text, pip_name)}"
         fallback, max_s = f["retry"].format(speaker=scene["speaker"]), 2
         forbidden = _answer_words(scene)
     elif outcome == "hint":

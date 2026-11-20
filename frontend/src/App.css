@@ -133,7 +133,7 @@
 }
 
 .left-card, .register-art {
-  background-color: #D8EEFF;
+  background-color: #d3e8fd;
   border-radius: 36px;
   padding: 48px;
   width: 50%;
@@ -227,6 +227,20 @@
 
 .child-login-art {
   background-color: #e5e9ec !important;
+}
+
+.child-login-art .child-art-container {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.child-login-art .child-art-img {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center right !important;
 }
 
 .bottom-banner {

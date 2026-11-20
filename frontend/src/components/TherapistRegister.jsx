@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import SiteHeader from './SiteHeader';
+import { api } from '../api';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
-export default function TherapistRegister({ onNavigate }) {
+export default function TherapistRegister({ onNavigate, onLogin }) {
   const [registration, setRegistration] = useState({
     fullName: '', professionalRole: '', practice: '', registrationNumber: '', displayName: '', email: '', password: '', acceptedTerms: false,
   });
@@ -22,21 +20,22 @@ export default function TherapistRegister({ onNavigate }) {
     event.preventDefault();
     setError('');
     setIsSubmitting(true);
-
     try {
-      const response = await fetch(`${API}/api/register`, {
+      const data = await api('/api/therapists/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registration),
+        body: {
+          full_name: registration.fullName,
+          display_name: registration.displayName,
+          role: registration.professionalRole,
+          practice: registration.practice,
+          registration_number: registration.registrationNumber,
+          email: registration.email,
+          password: registration.password,
+        },
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError(typeof data.detail === 'string' ? data.detail : 'Could not create your account.');
-        return;
-      }
-      onNavigate('go_login');
-    } catch {
-      setError('Could not connect to the server.');
+      onLogin(data); // logged in -> next: add the first child
+    } catch (err) {
+      setError(err.status ? err.message : 'Could not connect to the server. Is the backend running?');
     } finally {
       setIsSubmitting(false);
     }
@@ -44,7 +43,15 @@ export default function TherapistRegister({ onNavigate }) {
 
   return (
     <>
-      <SiteHeader onNavigate={onNavigate} isLogInActive />
+      <header className="register-header">
+        <div className="register-header-left">
+          <button type="button" className="register-logo" onClick={() => onNavigate('go_home')}>••</button>
+          <button type="button" className="register-login-link" onClick={() => onNavigate('go_login')}>Log-in</button>
+        </div>
+        <nav className="register-nav">
+          <button type="button" onClick={() => onNavigate('go_settings')}>Settings</button>
+        </nav>
+      </header>
 
       <main className="register-main">
         <aside className="register-art">
@@ -52,6 +59,7 @@ export default function TherapistRegister({ onNavigate }) {
             <h1>Small steps.<br />Shared beginnings.</h1>
             <p>Create your account, set up your practice and invite each child at their own pace.</p>
           </div>
+          
           <div className="c3-art-container">
             <img src="/resources/c3.png" alt="Register Characters Stack" className="c3-art-img" />
           </div>
@@ -59,7 +67,7 @@ export default function TherapistRegister({ onNavigate }) {
 
         <section className="register-content">
           <p className="register-step">STEP 1 OF 2 · YOUR PRACTICE</p>
-          <h2 className="form-title">A little about you.</h2>
+          <h2>A little about you.</h2>
           <p className="register-description">Set up the profile children and their grown-ups will see.</p>
           {error && <p className="form-error" role="alert">{error}</p>}
 
@@ -71,6 +79,7 @@ export default function TherapistRegister({ onNavigate }) {
             <label>Display name<input name="displayName" value={registration.displayName} onChange={handleRegistrationChange} placeholder="Dr. Emma" required /></label>
             <label>Work email<input type="email" name="email" value={registration.email} onChange={handleRegistrationChange} placeholder="emma@littlesteps.com" required /></label>
             <label>Password<input type="password" name="password" value={registration.password} onChange={handleRegistrationChange} placeholder="Create a password" minLength={12} required /><small>Use at least 12 characters, including a number.</small></label>
+            
             <label className="register-terms">
               <input type="checkbox" name="acceptedTerms" checked={registration.acceptedTerms} onChange={handleRegistrationChange} required />
               <span>I agree to the Terms of use and Privacy policy.</span>

@@ -33,9 +33,11 @@ export const FOCUS_INFO = {
   },
 };
 
+// The children the app really uses come from the backend (backend/mock_data.py, same names and codes).
+// This copy is only used by the older therapist screens (TherapistOverview, ChildProfile...).
 export const INITIAL_CHILDREN = [
   {
-    id: 'dan', name: 'Dan', age: 8, code: 'PIP-001', pip: 'milo', avatar: '/resources/pip-milo.png', color: '#e3ecd9',
+    id: 'dan', name: 'Dan', age: 8, code: 'PIP001', pip: 'milo', avatar: '/resources/pip-milo.png', color: '#e3ecd9',
     focus: 'Hidden requests', support: 'Guided', weeklyGoal: 5, practiceDays: 3,
     activities: 6, practiceMinutes: 42, lastActive: '1 Nov', daysAgo: 0, isNew: false,
     progress: [
@@ -45,7 +47,7 @@ export const INITIAL_CHILDREN = [
     ],
   },
   {
-    id: 'amelia', name: 'Amelia', age: 7, code: 'PIP-002', avatar: null, color: '#f6e3e3',
+    id: 'amelia', name: 'Amelia', age: 7, code: 'PIP002', avatar: null, color: '#f6e3e3',
     focus: 'Feelings', support: 'Guided', weeklyGoal: 5, practiceDays: 4,
     activities: 8, practiceMinutes: 55, lastActive: '1 Nov', daysAgo: 0, isNew: false,
     progress: [
@@ -55,7 +57,7 @@ export const INITIAL_CHILDREN = [
     ],
   },
   {
-    id: 'leo', name: 'Leo', age: 6, code: 'PIP-003', avatar: null, color: '#e6f0dc',
+    id: 'leo', name: 'Leo', age: 6, code: 'PIP003', avatar: null, color: '#e6f0dc',
     focus: 'Beyond words', support: 'Supported', weeklyGoal: 3, practiceDays: 2,
     activities: 5, practiceMinutes: 38, lastActive: '31 Oct', daysAgo: 1, isNew: false,
     progress: [
@@ -65,7 +67,7 @@ export const INITIAL_CHILDREN = [
     ],
   },
   {
-    id: 'maya', name: 'Maya', age: 9, code: 'PIP-004', avatar: null, color: '#ebe6f5',
+    id: 'maya', name: 'Maya', age: 9, code: 'PIP004', avatar: null, color: '#ebe6f5',
     focus: 'Hidden requests', support: 'Independent', weeklyGoal: 3, practiceDays: 3,
     activities: 7, practiceMinutes: 61, lastActive: '30 Oct', daysAgo: 2, isNew: false,
     progress: [
@@ -75,7 +77,7 @@ export const INITIAL_CHILDREN = [
     ],
   },
   {
-    id: 'noah', name: 'Noah', age: 8, code: 'PIP-005', avatar: null, color: '#f5ecdc',
+    id: 'noah', name: 'Noah', age: 8, code: 'PIP005', avatar: null, color: '#f5ecdc',
     focus: 'Feelings', support: 'Guided', weeklyGoal: 3, practiceDays: 1,
     activities: 6, practiceMinutes: 92, lastActive: '29 Oct', daysAgo: 3, isNew: false,
     progress: [
@@ -85,7 +87,7 @@ export const INITIAL_CHILDREN = [
     ],
   },
   {
-    id: 'sophie', name: 'Sophie', age: 6, code: 'PIP-006', avatar: null, color: '#dcefe8',
+    id: 'sophie', name: 'Sophie', age: 6, code: 'PIP006', avatar: null, color: '#dcefe8',
     focus: 'Beyond words', support: 'Supported', weeklyGoal: 3, practiceDays: 0,
     activities: 0, practiceMinutes: 0, lastActive: null, daysAgo: 99, isNew: true,
     progress: [
