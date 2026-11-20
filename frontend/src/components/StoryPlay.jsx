@@ -277,30 +277,37 @@ export default function StoryPlay({
     setTried((list) => [...list, optionId]);
     setThinking(true);
     try {
-      const r = await post(`/api/stories/${storyId}/answer`, {
+      const body = {
         scene_id: scene.id, child_answer: optionId, attempt, language: lang,
         pip_name: pipName, child_name: childName, run_id: runIdRef.current,
-      });
+      };
+      // Both at once: /check answers instantly (story file), /answer waits for Pip's AI sentence.
+      // So Pip's action and the customer's reaction play while the AI is still writing.
+      const pipReply = post(`/api/stories/${storyId}/answer`, body);
+      pipReply.catch(() => {}); // handled below with await; this only avoids an "unhandled" warning
+      const c = await post(`/api/stories/${storyId}/check`, body);
       if (run.current !== myRun) return;
       const result = resultsRef.current[scene.id] || { scene_id: scene.id, attempts: 0, solved: false };
       result.attempts = attempt;
-      if (r.is_correct) result.solved = true;
+      if (c.is_correct) result.solved = true;
       resultsRef.current[scene.id] = result;
 
       // 1) Pip does what the child chose (later: an animation of Pip doing it)
-      setAction(r.action);
+      setAction(c.action);
       setPhase('acting');
       await wait(ACTION_MS);
       if (run.current !== myRun) return;
 
       // 2) The customer reacts
       setCustomerLine({
-        name: r.reaction.speaker, text: r.reaction.says, emotion: r.reaction.emotion, note: r.reaction.description,
+        name: c.reaction.speaker, text: c.reaction.says, emotion: c.reaction.emotion, note: c.reaction.description,
       });
-      await speak(r.reaction.says, 'customer');
+      await speak(c.reaction.says, 'customer');
       if (run.current !== myRun) return;
 
-      // 3) Pip reacts (written by the AI)
+      // 3) Pip reacts (written by the AI; the thinking dots stay until it arrives)
+      const r = await pipReply;
+      if (run.current !== myRun) return;
       if (r.scene_done) {
         setRevealed(r.correct_answer);
         if (r.is_correct) setSolved((list) => [...list, scene.id]);

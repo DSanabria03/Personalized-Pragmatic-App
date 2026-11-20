@@ -3,31 +3,37 @@ Story API: the frontend calls these while the child plays a story.
 
     GET  /api/stories/{story_id}?language=en         story + scenes, WITHOUT the correct answers
     POST /api/stories/{story_id}/narrate             Pip tells what happens in a scene
-    POST /api/stories/{story_id}/answer              child picked an option -> right or not + Pip reacts
+    POST /api/stories/{story_id}/check               child picked an option -> right or not, Pip's action, the
+                                                     customer's reaction (instant, no LLM, nothing saved)
+    POST /api/stories/{story_id}/answer              the same + Pip's sentence (LLM), and the answer is saved
     POST /api/stories/{story_id}/start               a logged-in child starts playing -> run_id
     POST /api/stories/{story_id}/finish              Pip celebrates at the end + the results ("Great job" screen)
 
 If a child is logged in (Authorization: Bearer <token>), every answer is saved (in memory, mock_data.py) and the
 results count for their progress and the therapist's dashboard. Pip also uses the child's name.
+Answers of guests (nobody logged in) are kept in memory too (mock_data.GUEST_ANSWERS). Nothing is written to disk.
 
 Stories live in data/stories/<story_id>.json. Text there can be a plain string or {"en": "...", "it": "..."}.
 "pip_role" (story or scene) says which character Pip plays, e.g. the waiter or one of the customers.
 """
 
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Annotated
 
 from fastapi import APIRouter, Header, HTTPException
-from pydantic import BaseModel
+from pydantic import AfterValidator, BaseModel, Field
 
+import mock_data
 from services import accounts, llm_service, progress
 
 router = APIRouter(prefix="/api/stories", tags=["stories"])
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 STORIES_DIR = DATA_DIR / "stories"
-ANSWER_LOG = DATA_DIR / "answer_log.jsonl"
+STORY_ID = re.compile(r"[a-z0-9_]{1,64}")   # file names in data/stories (no "/" or "..")
 MAX_TRIES_BEFORE_REVEAL = 3
 
 
@@ -47,7 +53,7 @@ def check_language(lang: str) -> str:
 
 def load_story(story_id: str) -> dict:
     path = STORIES_DIR / f"{story_id}.json"
-    if not path.is_file():
+    if not STORY_ID.fullmatch(story_id) or not path.is_file():
         raise HTTPException(404, f"Story '{story_id}' not found")
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -108,29 +114,33 @@ def child_name_for(child: dict | None, fallback: str | None) -> str | None:
 
 
 def save_answer(entry: dict) -> None:
-    """Answers of guests (no child logged in) go to data/answer_log.jsonl.
-    Answers of logged-in children are saved in memory (services/progress.py)."""
+    """Answers of guests (no child logged in), kept in memory (mock_data.GUEST_ANSWERS).
+    Answers of logged-in children go to their progress (services/progress.py)."""
     entry["timestamp"] = datetime.now(timezone.utc).isoformat()
-    with ANSWER_LOG.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    with mock_data.LOCK:
+        mock_data.GUEST_ANSWERS.append(entry)
 
 
 # ---------- request / response shapes ----------
+# Names sent by the browser end up in the LLM's instructions: keep only a safe short name.
+PipName = Annotated[str, AfterValidator(lambda name: llm_service.clean_name(name) or "Pip")]
+ChildName = Annotated[str | None, AfterValidator(llm_service.clean_name)]
+
 class NarrateRequest(BaseModel):
     scene_id: str
     language: str = "en"
-    pip_name: str = "Pip"
-    child_name: str | None = None   # only used when no child is logged in (otherwise the name comes from the account)
+    pip_name: PipName = "Pip"
+    child_name: ChildName = None   # only used when no child is logged in (otherwise the name comes from the account)
 
 
 class AnswerRequest(BaseModel):
     scene_id: str
     child_answer: str          # option id, e.g. "C"
-    attempt: int = 1           # 1 = first try on this scene
+    attempt: int = Field(default=1, ge=1, le=20)   # 1 = first try on this scene
     language: str = "en"
-    pip_name: str = "Pip"
+    pip_name: PipName = "Pip"
     child_code: str | None = None   # old: guests only (logged-in children are known from their token)
-    child_name: str | None = None
+    child_name: ChildName = None
     run_id: int | None = None       # from /start, links the answer to this play-through
 
 
@@ -146,8 +156,8 @@ class SceneResult(BaseModel):
 
 class FinishRequest(BaseModel):
     language: str = "en"
-    pip_name: str = "Pip"
-    child_name: str | None = None
+    pip_name: PipName = "Pip"
+    child_name: ChildName = None
     solved_scene_ids: list[str] = []
     run_id: int | None = None
     results: list[SceneResult] = []   # for guests; for logged-in children mock_data.py is used
@@ -190,13 +200,13 @@ def narrate(story_id: str, req: NarrateRequest, authorization: str | None = Head
             "listener": scene["listener"], "quote": scene["quote"]}
 
 
-@router.post("/{story_id}/answer")
-def answer(story_id: str, req: AnswerRequest, authorization: str | None = Header(default=None)):
+def evaluate(story_id: str, req: AnswerRequest):
+    """The part of an answer that comes from the story file, no LLM: is it right, what Pip does,
+    how the customer reacts. Fast, so the screen can show it while Pip's sentence is still being written."""
     lang = check_language(req.language)
     story = load_story(story_id)
     _, raw = find_scene(story, req.scene_id)
     scene = localized_scene(raw, lang)
-    child = logged_in_child(authorization)
 
     picked = next((o for o in scene["options"] if o["id"] == req.child_answer), None)
     if picked is None:
@@ -211,28 +221,11 @@ def answer(story_id: str, req: AnswerRequest, authorization: str | None = Header
         outcome = "hint"
     else:
         outcome = "retry"
-
-    speech = llm_service.react_to_answer(
-        lang, req.pip_name, pip_role(story, raw, lang), scene, picked["text"], outcome, req.attempt,
-        reaction=picked["reaction"]["description"],
-        child_name=child_name_for(child, req.child_name),
-    )
     scene_done = outcome in ("correct", "reveal")
 
-    if child:   # saved for the child's progress and the therapist's dashboard
-        progress.record_attempt(child["id"], req.run_id, story_id, scene["id"], lang, req.child_answer,
-                                is_correct, req.attempt, outcome, speech)
-    else:
-        save_answer({
-            "child_code": req.child_code, "story_id": story_id, "scene_id": scene["id"], "language": lang,
-            "child_answer": req.child_answer, "is_correct": is_correct, "attempt": req.attempt,
-            "outcome": outcome, "pip_said": speech, "model": llm_service.LLM_MODEL,
-        })
-
-    return {
+    result = {
         "is_correct": is_correct,
         "outcome": outcome,                  # correct | retry | hint | reveal
-        "speech": speech,
         "scene_done": scene_done,            # true -> show "Continue"
         "correct_answer": scene["correct"] if scene_done else None,
         "hidden_meaning": scene["hidden_meaning"] if scene_done else None,
@@ -246,6 +239,39 @@ def answer(story_id: str, req: AnswerRequest, authorization: str | None = Header
         # for the pause after the first try: helps the therapist / grown-up talk it through with the child
         "for_grown_up": {"hint": scene["hint"], "hidden_meaning": scene["hidden_meaning"]} if outcome == "retry" else None,
     }
+    return lang, story, raw, scene, picked, result
+
+
+@router.post("/{story_id}/check")
+def check(story_id: str, req: AnswerRequest):
+    """Instant answer without Pip's sentence (nothing is saved). The screen calls this and /answer at the
+    same time: it shows Pip's action and the customer's reaction right away, and Pip's sentence when it's ready."""
+    return evaluate(story_id, req)[-1]
+
+
+@router.post("/{story_id}/answer")
+def answer(story_id: str, req: AnswerRequest, authorization: str | None = Header(default=None)):
+    lang, story, raw, scene, picked, result = evaluate(story_id, req)
+    child = logged_in_child(authorization)
+    is_correct, outcome = result["is_correct"], result["outcome"]
+
+    speech = llm_service.react_to_answer(
+        lang, req.pip_name, pip_role(story, raw, lang), scene, picked["text"], outcome, req.attempt,
+        reaction=picked["reaction"]["description"],
+        child_name=child_name_for(child, req.child_name),
+    )
+
+    if child:   # saved for the child's progress and the therapist's dashboard
+        progress.record_attempt(child["id"], req.run_id, story_id, scene["id"], lang, req.child_answer,
+                                is_correct, req.attempt, outcome, speech)
+    else:
+        save_answer({
+            "child_code": req.child_code, "story_id": story_id, "scene_id": scene["id"], "language": lang,
+            "child_answer": req.child_answer, "is_correct": is_correct, "attempt": req.attempt,
+            "outcome": outcome, "pip_said": speech, "model": llm_service.LLM_MODEL,
+        })
+
+    return {**result, "speech": speech}      # the same as /check, plus Pip's sentence
 
 
 @router.post("/{story_id}/start")

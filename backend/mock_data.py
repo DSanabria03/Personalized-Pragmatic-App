@@ -10,7 +10,7 @@ Demo accounts
                 (the same children as frontend/src/data/mockData.js)
 
 The "tables" are lists of dicts with the same fields the old SQLite tables had:
-    THERAPISTS, CHILDREN, TOKENS, STORY_RUNS, ATTEMPTS
+    THERAPISTS, CHILDREN, TOKENS, STORY_RUNS, ATTEMPTS, GUEST_ANSWERS
 """
 
 import hashlib
@@ -27,6 +27,7 @@ CHILDREN: list[dict] = []
 TOKENS: dict[str, dict] = {}        # token -> {"role": "therapist" | "child", "user_id": ...}
 STORY_RUNS: list[dict] = []
 ATTEMPTS: list[dict] = []
+GUEST_ANSWERS: list[dict] = []      # answers of children who play without logging in (routers/story.py)
 
 LOCK = threading.RLock()            # FastAPI answers several requests at once: change the lists one at a time
 
@@ -136,7 +137,7 @@ def reset() -> None:
     """(Re)creates the demo data. Called once when the backend starts."""
     global _therapist_ids, _child_ids, _run_ids, _attempt_ids
     with LOCK:
-        for table in (THERAPISTS, CHILDREN, STORY_RUNS, ATTEMPTS):
+        for table in (THERAPISTS, CHILDREN, STORY_RUNS, ATTEMPTS, GUEST_ANSWERS):
             table.clear()
         TOKENS.clear()
         _therapist_ids, _child_ids = itertools.count(1), itertools.count(1)
