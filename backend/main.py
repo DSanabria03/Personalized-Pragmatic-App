@@ -1,6 +1,5 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 import mock_data
 from routers.accounts import router as accounts_router
@@ -30,60 +29,6 @@ app.include_router(tts_router)     # Pip's voice (routers/tts.py)
 app.include_router(accounts_router)  # therapist + child accounts, statistics (routers/accounts.py)
 
 
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-
-class ScreenTransitionRequest(BaseModel):
-    current_screen: str
-    action: str
-
-
 @app.get("/")
 def read_root():
     return {"message": "OK"}
-
-
-# Old demo login (fixed user). The real accounts are in routers/accounts.py: /api/therapists/login etc.
-@app.post("/api/login")
-def login(credentials: LoginRequest):
-    if credentials.email.lower() == "user@user.com" and credentials.password == "password":
-        return {
-            "success": True,
-            "message": "Login exitoso",
-            "token": "fake-jwt-token-pip",
-            "next_screen": "add-child",
-        }
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Email o contraseña incorrectos",
-    )
-
-
-@app.post("/api/navigation")
-def navigate(data: ScreenTransitionRequest):
-    transitions = {
-        ("home", "go_login"): "login",
-        ("home", "go_child_login"): "child-login",
-        ("login", "go_home"): "home",
-        ("login", "go_register"): "register",
-        ("login", "go_child_login"): "child-login",
-        ("register", "go_home"): "home",
-        ("register", "go_login"): "login",
-        ("register", "go_add_child"): "add-child",
-        ("add-child", "go_child_code"): "child-code",
-        ("add-child", "go_register"): "register",
-        ("child-code", "go_home"): "home",
-        ("child-code", "go_add_child"): "add-child",
-        ("child-login", "go_home"): "home",
-        ("child-login", "go_story"): "story",
-        ("story", "go_home"): "home",
-    }
-
-    next_screen = transitions.get((data.current_screen, data.action))
-    if next_screen:
-        return {"next_screen": next_screen}
-
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Transición no válida")
