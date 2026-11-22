@@ -33,7 +33,7 @@ export const FOCUS_INFO = {
   },
 };
 
-// The children the app really uses come from the backend (backend/mock_data.py, same names and codes).
+// The children the app really uses come from the backend (SQLite, backend/database.py).
 // This copy is only used by the older therapist screens (TherapistOverview, ChildProfile...).
 export const INITIAL_CHILDREN = [
   {
