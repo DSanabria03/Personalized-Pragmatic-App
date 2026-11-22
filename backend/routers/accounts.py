@@ -17,13 +17,16 @@ Child only:
     GET  /api/progress              XP, level, badges, this week (for the child's home and the "Great job" screen)
 """
 
-from fastapi import APIRouter, Header, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, Header, HTTPException, Path
 from pydantic import BaseModel
 
 from services import accounts, progress
 from services.accounts import AccountError
 
 router = APIRouter(prefix="/api", tags=["accounts"])
+ChildId = Annotated[int, Path(ge=0, lt=2**63)]   # SQLite can't take bigger numbers
 
 
 class TherapistRegister(BaseModel):
@@ -106,6 +109,7 @@ def me(language: str = "en", authorization: str | None = Header(default=None)):
     user = current_user(authorization)
     user = {k: v for k, v in user.items() if k != "token"}
     if user["role"] == "child":
+        user["therapist"] = accounts.child_therapist(user["child"]["id"])
         user["progress"] = progress.child_progress(user["child"]["id"], language)
     return user
 
@@ -134,7 +138,7 @@ def add_child(body: NewChild, authorization: str | None = Header(default=None)):
 
 
 @router.get("/children/{child_id}")
-def child_statistics(child_id: int, authorization: str | None = Header(default=None)):
+def child_statistics(child_id: ChildId, authorization: str | None = Header(default=None)):
     therapist = current_therapist(authorization)
     detail = progress.child_detail(therapist["id"], child_id)
     if not detail:
@@ -143,7 +147,7 @@ def child_statistics(child_id: int, authorization: str | None = Header(default=N
 
 
 @router.post("/children/{child_id}/reset-code")
-def reset_code(child_id: int, authorization: str | None = Header(default=None)):
+def reset_code(child_id: ChildId, authorization: str | None = Header(default=None)):
     therapist = current_therapist(authorization)
     try:
         return accounts.reset_child_code(therapist["id"], child_id)

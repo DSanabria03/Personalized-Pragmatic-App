@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { api } from '../api';
 import { PIPS } from '../data/mockData';
 
 
 export default function ChildSetup({ onNavigate, onComplete, initialName = 'Dan', initialPip = 'milo' }) {
   const [nickname, setNickname] = useState(initialName);
   const [selectedPip, setSelectedPip] = useState(initialPip);
+  const [therapist, setTherapist] = useState(null);
+
+  useEffect(() => {
+    api('/api/me')
+      .then((me) => setTherapist(me.therapist))
+      .catch(() => {}); // only a label: the child can still choose their Pip without it
+  }, []);
 
   const handleStart = (e) => {
     e.preventDefault();
@@ -45,7 +53,11 @@ export default function ChildSetup({ onNavigate, onComplete, initialName = 'Dan'
           <h2 className="form-title">Make yourself at home.</h2>
           <p className="register-description">Your therapist has set things up. Now make it yours.</p>
 
-          <div className="setup-therapist-box">Connected with Dr. Emma · Little Steps Therapy</div>
+          {therapist && (
+            <div className="setup-therapist-box">
+              Connected with {[therapist.display_name, therapist.practice].filter(Boolean).join(' · ')}
+            </div>
+          )}
 
           <form className="register-form" onSubmit={handleStart}>
             <label>

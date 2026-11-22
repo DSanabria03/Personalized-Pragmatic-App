@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import mock_data
+from database import init_db
 from routers.accounts import router as accounts_router
 from routers.story import router as story_router
 from routers.tts import router as tts_router
@@ -13,7 +13,7 @@ try:
 except ImportError:
     pass
 
-mock_data.reset()   # fake data in memory (mock_data.py): no database for now
+init_db()   # creates backend/data/pip.db and its tables if they do not exist yet
 
 app = FastAPI(title="Personalized Pragmatic App")
 
