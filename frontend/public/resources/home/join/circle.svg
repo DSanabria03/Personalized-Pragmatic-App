@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="254" height="254" viewBox="0 0 254 254" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="Group 7">
+<circle id="Ellipse 3" cx="127" cy="127" r="127" fill="#766CFF"/>
+<circle id="Ellipse 2" cx="127" cy="127" r="127" fill="url(#pattern0_0_102)"/>
+</g>
+<defs>
+<pattern id="pattern0_0_102" patternUnits="userSpaceOnUse" patternTransform="matrix(29.1569 0 0 29.1569 0 -0.954602)" preserveAspectRatio="none" viewBox="0 -10.6067 323.966 323.966" width="1" height="1">
+<use xlink:href="#pattern0_0_102_inner" transform="translate(-323.966 -323.966)"/>
+<use xlink:href="#pattern0_0_102_inner" transform="translate(0 -323.966)"/>
+<use xlink:href="#pattern0_0_102_inner" transform="translate(-323.966 0)"/>
+<g id="pattern0_0_102_inner">
+<line id="Line 3" x1="5.3033" y1="-5.3033" x2="329.269" y2="318.663" fill="none" stroke-width="15" stroke="#E8E6FE"/>
+</g>
+</pattern></defs>
+</svg>

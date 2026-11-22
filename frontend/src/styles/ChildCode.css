@@ -1,0 +1,146 @@
+/* The new child's code: only its own part. The layout and the common form styles are in AuthLayout.css.
+   --t  text can get up to 1.25 times bigger than the rest on small laptops. */
+
+.new-code > * {
+  --t: max(var(--u), min(0.85px, calc(var(--u) * 1.25)));
+}
+
+.new-code-line {
+  display: flex;
+  max-width: 100%;
+  white-space: pre;
+}
+
+.new-code-line > span { flex-shrink: 0; }
+
+.new-code-line > .new-code-name {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.new-code .new-code-subtitle { width: 100%; }
+
+/* ---------- Code ---------- */
+.new-code .new-code-box {
+  left: 0;
+  top: calc(var(--u) * 153);
+  width: 100%;
+  height: calc(var(--u) * 237);
+  border-radius: calc(var(--u) * 28);
+  background: #dcd7ff;
+  overflow: hidden;
+}
+
+.new-code-title,
+.new-code-value,
+.new-code-help {
+  position: absolute;
+  left: calc(var(--u) * 28);
+  width: calc(var(--u) * 576);
+  white-space: nowrap;
+}
+
+.new-code-title {
+  top: calc(var(--u) * 27);
+  color: #625b78;
+  font-size: calc(var(--t) * 13);
+  font-weight: 600;
+}
+
+.new-code-value {
+  top: calc(var(--u) * 84);
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 42);
+  line-height: 1.15;
+  letter-spacing: calc(var(--u) * 30);
+}
+
+.new-code-help {
+  top: calc(var(--u) * 173);
+  font-size: calc(var(--t) * 17);
+}
+
+/* ---------- Buttons ---------- */
+.new-code .new-code-copy {
+  top: calc(var(--u) * 439);
+  width: calc(var(--u) * 304);
+}
+
+.new-code .new-code-download {
+  left: calc(var(--u) * 328);
+  top: calc(var(--u) * 439);
+  width: calc(var(--u) * 304);
+  height: calc(var(--u) * 56);
+  border-radius: calc(var(--u) * 28);
+  color: #3423c7;
+  font-size: calc(var(--t) * 17);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.new-code .new-code-download:hover { text-decoration: underline; }
+
+.new-code .new-code-profile {
+  top: calc(var(--u) * 661);
+  padding: 0 calc(var(--u) * 16);
+}
+
+.new-code-profile .new-code-line { justify-content: center; }
+
+/* ---------- Note ---------- */
+.new-code .new-code-note {
+  left: 0;
+  top: calc(var(--u) * 536);
+  width: 100%;
+  height: calc(var(--u) * 93);
+  border-radius: calc(var(--u) * 20);
+  background: #e8e6fe;
+  overflow: hidden;
+}
+
+.new-code-note-title,
+.new-code-note-text {
+  position: absolute;
+  left: calc(var(--u) * 22);
+  width: calc(var(--u) * 588);
+  white-space: nowrap;
+}
+
+.new-code-note-title {
+  top: calc(var(--u) * 12);
+  font-size: calc(var(--t) * 18);
+  font-weight: 600;
+}
+
+.new-code-note-text {
+  top: calc(var(--u) * 41);
+  color: #625b78;
+  font-size: calc(var(--t) * 15);
+}
+
+/* ---------- "Download login card" = print / save as PDF ----------
+   On paper there is no window to measure, so the size is fixed to fit the width of an A4 or Letter page. */
+@media print {
+  .auth.new-code {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .auth.new-code > * {
+    --u: 0.46px;
+    --t: 0.575px;
+    --h: 0.575px;
+  }
+
+  .new-code .auth-screen { height: calc(var(--u) * 982); }
+
+  /* Without this the full-height containers of the app add an empty second page */
+  html:has(.new-code),
+  html:has(.new-code) body,
+  html:has(.new-code) #root,
+  html:has(.new-code) .app-container {
+    min-height: 0;
+  }
+}

@@ -20,9 +20,9 @@ function greeting() {
   return hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 }
 
-export default function TherapistDashboard({ session, onNavigate, onLogout }) {
+export default function TherapistDashboard({ session, initialChildId = null, onNavigate, onLogout }) {
   const [data, setData] = useState(null);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(initialChildId);
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');

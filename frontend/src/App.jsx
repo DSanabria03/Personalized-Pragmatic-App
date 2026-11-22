@@ -39,6 +39,9 @@ const ACTIONS = {
 // Screens that need someone to be logged in.
 const NEEDS = { dashboard: 'therapist', 'add-child': 'therapist', 'child-code': 'therapist', 'child-home': 'child', 'child-setup': 'child' };
 
+// Redesigned screens: their design has no footer. The other screens keep it until they are redesigned.
+const NO_FOOTER = ['home', 'login', 'register', 'add-child', 'child-code'];
+
 function startScreen(session) {
   if (session && session.role === 'child') return 'child-home';
   if (session && session.role === 'therapist') return 'dashboard';
@@ -52,9 +55,11 @@ export default function App() {
   const [previous, setPrevious] = useState('home'); // where "Back" in Settings goes
   const [newChild, setNewChild] = useState(null); // the child just added (for the code screen)
   const [lastResult, setLastResult] = useState(null); // results of the story just played
+  const [dashboardChild, setDashboardChild] = useState(null); // the child the dashboard opens with (none = the first one)
   const [storyKey, setStoryKey] = useState(0); // new number = start the story fresh ("Play again")
 
-  const go = (target) => {
+  const go = (target, childId = null) => {
+    setDashboardChild(childId);
     if (target === 'settings' && screen !== 'settings') setPrevious(screen);
     setScreen(target);
     window.scrollTo(0, 0);
@@ -121,7 +126,9 @@ export default function App() {
           therapistName={session && [session.name, session.practice].filter(Boolean).join(' · ')}
           onCreated={(child) => { setNewChild(child); go('child-code'); }} />
       )}
-      {shown === 'child-code' && <ChildCode onNavigate={onNavigate} child={newChild} />}
+      {shown === 'child-code' && (
+        <ChildCode onNavigate={onNavigate} child={newChild} onOpenProfile={() => go('dashboard', newChild?.id)} />
+      )}
       {shown === 'child-login' && <ChildLogin onNavigate={onNavigate} onLogin={(d) => login(d)} />}
       {shown === 'child-setup' && (
         <ChildSetup
@@ -132,7 +139,9 @@ export default function App() {
         />
       )}
       {shown === 'child-home' && <ChildHome session={session} settings={settings} onNavigate={onNavigate} onLogout={logout} />}
-      {shown === 'dashboard' && <TherapistDashboard session={session} onNavigate={onNavigate} onLogout={logout} />}
+      {shown === 'dashboard' && (
+        <TherapistDashboard session={session} initialChildId={dashboardChild} onNavigate={onNavigate} onLogout={logout} />
+      )}
       {shown === 'settings' && (
         <Settings settings={settings} onChange={updateSettings} onBack={() => go(previous)} session={session} onLogout={logout} />
       )}
@@ -156,13 +165,15 @@ export default function App() {
           onPlayAgain={() => { setStoryKey((k) => k + 1); go('story'); }} />
       )}
 
-      <footer className="footer">
-        <p>Little steps, big things.</p>
-        <div className="footer-links">
-          <a href="#privacy">Privacy</a>
-          <a href="#terms">Terms</a>
-        </div>
-      </footer>
+      {!NO_FOOTER.includes(shown) && (
+        <footer className="footer">
+          <p>Little steps, big things.</p>
+          <div className="footer-links">
+            <a href="#privacy">Privacy</a>
+            <a href="#terms">Terms</a>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }

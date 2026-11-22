@@ -1,0 +1,241 @@
+/* Home: three screens one below the other (hero, story, join). Each one is a 1512 x 982 Figma frame
+   (MacBook Pro 14") and every number in the Home CSS files is a pixel of that frame.
+   --u  one frame pixel on this screen: each composition always fits, in width and in height.
+        It uses cqw and not vw, because vw also counts the scrollbar.
+   --h  the same for the header, which never goes below 80% so it stays readable on small laptops.
+   A composition sits on the bottom edge of its screen (.home-stage). What continues from the screen above
+   sits on the top edge (.home-stage-top), so the dots always line up. On other proportions only the background grows. */
+
+.home {
+  position: relative;
+  container-type: inline-size;
+  width: 100%;
+  background: #e8e6fe;
+}
+
+.home > * {
+  --u: min(calc(100cqw / 1512), calc(100dvh / 982));
+  --h: max(0.8px, var(--u));
+}
+
+/* ---------- Screens ---------- */
+.home-screen {
+  position: relative;
+  overflow: hidden;
+  height: min(100dvh, calc(var(--u) * 1300)); /* the limit is for monitors turned vertical */
+}
+
+.home-screen.hero-screen { height: 100dvh; }
+
+.home-stage,
+.home-stage-top {
+  position: absolute;
+  left: calc(50% - var(--u) * 756);
+  width: calc(var(--u) * 1512);
+}
+
+.home-stage {
+  bottom: 0;
+  height: calc(var(--u) * 982);
+}
+
+.home-stage-top { top: 0; }
+
+.hero-screen .home-stage { pointer-events: none; }
+
+.home-illustration svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Right side of the header (the rest is in PageHeader.css) ---------- */
+.home-account {
+  position: absolute;
+  right: calc(var(--h) * 58);
+  top: calc(var(--h) * 58);
+  display: flex;
+  gap: calc(var(--h) * 20);
+}
+
+.home-account .page-link { margin-top: calc(var(--h) * 7); }
+
+.page-header .home-login {
+  width: calc(var(--h) * 113);
+  height: calc(var(--h) * 41);
+  padding-bottom: calc(var(--h) * 4);
+  border-radius: calc(var(--h) * 30);
+  background: #ff6498;
+  color: #fff;
+  transition: background-color 0.2s;
+}
+
+.page-header .home-login:hover { background: #ff3e81; }
+
+/* ---------- Hero ---------- */
+.home-circle,
+.home-title,
+.home-dots,
+.home-explorers {
+  position: absolute;
+  max-width: none;
+}
+
+.home-circle {
+  left: calc(var(--u) * 1160);
+  top: calc(var(--u) * 444);
+  width: calc(var(--u) * 225);
+  height: calc(var(--u) * 225);
+}
+
+.home-title {
+  left: calc(var(--u) * -95);
+  top: calc(var(--u) * 106);
+  width: calc(var(--u) * 1703);
+  color: #fff;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 230);
+  font-weight: 400;
+  line-height: 0.9;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.home-dots {
+  left: calc(var(--u) * 141);
+  top: calc(var(--u) * 760);
+  width: calc(var(--u) * 329);
+  height: calc(var(--u) * 222);
+}
+
+.home-explorers {
+  left: calc(var(--u) * 367);
+  top: calc(var(--u) * 316);
+  width: calc(var(--u) * 699);
+  height: calc(var(--u) * 670);
+}
+
+/* Neighbouring shapes of one colour show a light hairline in browsers: a thin stroke of that colour closes it. */
+.home-explorers :is(#explorers-Vector_14, #explorers-Vector_15, #explorers-Vector_16) {
+  stroke: #2b272b;
+  stroke-width: 0.8px;
+}
+
+.home-explorers #explorers-Vector_26 {
+  stroke: #3423c7;
+  stroke-width: 0.8px;
+}
+
+/* ---------- Animation ----------
+   Origins are coordinates inside the 699 x 670 illustration.
+   The bodies lean with a skew along the waist line: that line stays still, so they never come off the legs. */
+.home-illustration g { transform-box: view-box; }
+
+/* Shared by the story and join illustrations: these shapes scale around their own centre. */
+.home-illustration g.illustration-blink,
+.home-illustration g.illustration-talk {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.explorer-standing    { transform-origin: 228.492px 356.553px; }
+.explorer-kneeling    { transform-origin: 322.073px 493.537px; }
+.explorer-hair        { transform-origin: 405px 208px; }
+.explorer-hair-middle { transform-origin: 449px 212px; }
+.explorer-hair-end    { transform-origin: 489px 230px; }
+.explorer-eye         { transform-origin: 372.177px 213.491px; }
+.explorer-pupil-left  { transform-origin: 568.224px 319.812px; }
+.explorer-pupil-right { transform-origin: 657.096px 320.004px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Entrance, once */
+  .home-title { animation: home-title-in 0.9s ease-out backwards; }
+  .home-explorers { animation: home-explorers-in 1s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+  /* Standing explorer: scans the sky, focuses the telescope, hair follows, blinks */
+  .explorer-standing { animation: explorer-scan 7s ease-in-out 1s infinite; }
+  .explorer-telescope { animation: explorer-focus 7s ease-in-out 1s infinite; }
+  .explorer-hair { animation: explorer-hair-swing 3.5s ease-in-out 1s infinite; }
+  .explorer-hair-middle { animation: explorer-hair-swing 3.5s ease-in-out 1.2s infinite; }
+  .explorer-hair-end { animation: explorer-hair-swing 3.5s ease-in-out 1.4s infinite; }
+  .explorer-eye { animation: explorer-blink 4.3s ease-in-out 1s infinite; }
+
+  /* Kneeling explorer: breathes and looks around through the binoculars */
+  .explorer-kneeling { animation: explorer-breathe 5s ease-in-out 1s infinite; }
+  .explorer-look { animation: explorer-look-around 8s ease-in-out 1s infinite; }
+  .explorer-pupil-left,
+  .explorer-pupil-right { animation: explorer-blink 5.2s ease-in-out 1.5s infinite; }
+
+  /* Faces in the story and join screens */
+  .illustration-blink { animation: explorer-blink 4.6s ease-in-out 1s infinite; }
+  .illustration-blink--late { animation-delay: 2.3s; }
+  .illustration-blink--later { animation-delay: 3.4s; }
+  .illustration-talk { animation: illustration-talk 6s ease-in-out 1s infinite; }
+
+  /* Background */
+  .home-circle { animation: home-circle-turn 60s linear infinite; }
+  /* The same dots on both sides of the edge between hero and story: they must move as one, so they never pause. */
+  .home-dots,
+  .story-dots-top { animation: home-dots-float 8s ease-in-out infinite; }
+
+  /* Out of view: paused. Entrances: wait until the screen is seen. */
+  .home-screen:not(.is-visible) :not(.home-dots, .story-dots-top),
+  .home-screen:not(.has-entered) .home-enter {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes home-title-in {
+  from { opacity: 0; transform: translateY(calc(var(--u) * -30)); }
+}
+
+@keyframes home-explorers-in {
+  from { transform: translateY(calc(var(--u) * 120)); }
+}
+
+@keyframes explorer-scan {
+  0%, 100% { transform: rotate(20.973deg) skewX(0deg) rotate(-20.973deg); }
+  30%, 45% { transform: rotate(20.973deg) skewX(2.4deg) rotate(-20.973deg); }
+  72%, 82% { transform: rotate(20.973deg) skewX(-1.4deg) rotate(-20.973deg); }
+}
+
+@keyframes explorer-breathe {
+  0%, 100% { transform: rotate(26.247deg) skewX(0deg) rotate(-26.247deg); }
+  50% { transform: rotate(26.247deg) skewX(1.3deg) rotate(-26.247deg); }
+}
+
+@keyframes explorer-focus {
+  0%, 30%, 48%, 100% { transform: translate(0, 0); }
+  36%, 42% { transform: translate(-3px, -4px); }
+}
+
+@keyframes explorer-hair-swing {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(-5deg); }
+  70% { transform: rotate(4deg); }
+}
+
+@keyframes explorer-look-around {
+  0%, 10%, 92%, 100% { transform: translate(0, 0); }
+  18%, 34% { transform: translate(10px, -4px); }
+  42%, 58% { transform: translate(-9px, 1px); }
+  66%, 82% { transform: translate(3px, 10px); }
+}
+
+@keyframes explorer-blink {
+  0%, 90%, 98%, 100% { transform: scaleY(1); }
+  94% { transform: scaleY(0.1); }
+}
+
+@keyframes home-circle-turn {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes home-dots-float {
+  50% { transform: translateY(calc(var(--u) * -10)); }
+}
+
+@keyframes illustration-talk {
+  0%, 40%, 100% { transform: scaleY(1); }
+  6%, 18%, 30% { transform: scaleY(0.4); }
+  12%, 24%, 36% { transform: scaleY(1.1); }
+}

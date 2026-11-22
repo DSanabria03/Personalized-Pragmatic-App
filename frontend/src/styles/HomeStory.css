@@ -1,0 +1,234 @@
+/* Second screen of Home. Scale and layout rules are explained at the top of Home.css. */
+
+.story-screen { background: #fff; }
+
+/* Lavender wall: everything above the floor, edge to edge. */
+.story-wall {
+  position: absolute;
+  inset: 0 0 calc(var(--u) * 138);
+  background: #e8e6fe;
+}
+
+.story-floor {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--u) * 138);
+  width: 100%;
+  height: max(1px, var(--u));
+  transform: translateY(50%); /* centred on the edge, like the stroke in Figma */
+}
+
+.story-screen .home-stage > *,
+.story-dots-top,
+.story-mark,
+.story-text,
+.story-bulb,
+.story-glass {
+  position: absolute;
+  max-width: none;
+}
+
+/* ---------- Decoration ---------- */
+.story-dots-top {
+  left: calc(var(--u) * 141);
+  top: 0;
+  width: calc(var(--u) * 329);
+  height: calc(var(--u) * 107);
+}
+
+/* These white dots end at the floor. */
+.story-dots-side {
+  left: calc(var(--u) * 1101);
+  top: calc(var(--u) * 513);
+  width: calc(var(--u) * 329);
+  height: calc(var(--u) * 331);
+  overflow: hidden;
+}
+
+.story-dots-side img {
+  display: block;
+  width: 100%;
+  height: calc(var(--u) * 469);
+  max-width: none;
+}
+
+.story-dots-floor {
+  left: calc(var(--u) * 1101);
+  top: calc(var(--u) * 862);
+  width: calc(var(--u) * 314);
+  height: calc(var(--u) * 94);
+}
+
+.story-ring-small {
+  left: calc(var(--u) * 106);
+  top: calc(var(--u) * 524);
+  width: calc(var(--u) * 70);
+  height: calc(var(--u) * 70);
+}
+
+.story-ring-large {
+  left: calc(var(--u) * 1263);
+  top: calc(var(--u) * 86);
+  width: calc(var(--u) * 146);
+  height: calc(var(--u) * 146);
+}
+
+.story-ring-center {
+  left: calc(var(--u) * 1291);
+  top: calc(var(--u) * 114);
+  width: calc(var(--u) * 90);
+  height: calc(var(--u) * 90);
+}
+
+/* ---------- Quote ---------- */
+.story-quote { inset: 0; }
+
+.story-text {
+  left: calc(var(--u) * 443);
+  top: calc(var(--u) * 220);
+  width: calc(var(--u) * 625);
+  color: #2b272b;
+  font-family: 'Alexandria', sans-serif;
+  font-size: calc(var(--u) * 25);
+  font-weight: 400;
+  line-height: normal;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.story-mark {
+  width: calc(var(--u) * 146);
+  height: calc(var(--u) * 123);
+  color: #b6b2ff;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 120);
+  line-height: 0.9;
+  text-align: center;
+}
+
+.story-mark--open {
+  left: calc(var(--u) * 348);
+  top: calc(var(--u) * 195);
+}
+
+.story-mark--close {
+  left: calc(var(--u) * 1030);
+  top: calc(var(--u) * 208);
+  transform: rotate(180deg);
+}
+
+/* ---------- Investigators ---------- */
+.story-investigators {
+  left: calc(var(--u) * 264);
+  top: calc(var(--u) * 423);
+  width: calc(var(--u) * 985);
+  height: calc(var(--u) * 421);
+  pointer-events: none;
+}
+
+.story-bulb {
+  left: calc(var(--u) * 549.919);
+  top: 0;
+  width: calc(var(--u) * 435.081);
+  height: calc(var(--u) * 420.76);
+}
+
+.story-glass {
+  left: 0;
+  top: calc(var(--u) * 22.017);
+  width: calc(var(--u) * 766.802);
+  height: calc(var(--u) * 398.984);
+}
+
+/* ---------- Animation ----------
+   Origins are coordinates inside each SVG. "bulb-face" is the same point as "bulb-head", in the other file. */
+.glass-head         { transform-origin: 230px 124px; }
+.glass-hair         { transform-origin: 213px 57px; }
+.glass-hair-middle  { transform-origin: 183px 39px; }
+.glass-hair-end     { transform-origin: 151px 25px; }
+.glass-holding-arm  { transform-origin: 167px 171px; }
+.glass-pointing-arm { transform-origin: 291px 157px; }
+.glass-lens         { transform-origin: 449.5px 214.5px; }
+.bulb-head          { transform-origin: 195px 74px; }
+.bulb-face          { transform-origin: 744.919px 51.983px; }
+
+.story-ring-small,
+.story-ring-center { transform-origin: center; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Entrance, once */
+  .story-quote { animation: story-quote-in 0.9s ease-out backwards; }
+  .story-investigators { animation: story-investigators-in 1s ease-out 0.2s backwards; }
+
+  /* Magnifying glass: points out a clue, lifts the glass to look at it */
+  .glass-head { animation: glass-nod 6s ease-in-out 1s infinite; }
+  .glass-hair { animation: glass-hair-swing 3s ease-in-out 1s infinite; }
+  .glass-hair-middle { animation: glass-hair-swing 3s ease-in-out 1.15s infinite; }
+  .glass-hair-end { animation: glass-hair-swing 3s ease-in-out 1.3s infinite; }
+  .glass-holding-arm { animation: glass-lift 6s ease-in-out 1s infinite; }
+  .glass-pointing-arm { animation: glass-point 6s ease-in-out 1s infinite; }
+  .glass-lens { animation: story-pulse 6s ease-in-out 1s infinite; }
+
+  /* Light bulb: looks down at it and the idea lights up */
+  .bulb-head,
+  .bulb-face { animation: bulb-nod 6s ease-in-out 1s infinite; }
+  .bulb-glow path { animation: bulb-light 6s ease-in-out 1s infinite; }
+  .bulb-filament path { animation: bulb-filament 6s ease-in-out 1s infinite; }
+
+  /* Background */
+  .story-ring-small { animation: story-pulse 5s ease-in-out infinite; }
+  .story-ring-center { animation: story-pulse 5s ease-in-out 0.8s infinite; }
+}
+
+@keyframes story-quote-in {
+  from { opacity: 0; transform: translateY(calc(var(--u) * 24)); }
+}
+
+@keyframes story-investigators-in {
+  from { opacity: 0; transform: translateY(calc(var(--u) * -30)); }
+}
+
+@keyframes glass-nod {
+  0%, 100% { transform: rotate(0deg); }
+  20%, 35% { transform: rotate(-4deg); }
+  65%, 80% { transform: rotate(3deg); }
+}
+
+@keyframes glass-hair-swing {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(5deg); }
+  70% { transform: rotate(-4deg); }
+}
+
+@keyframes glass-point {
+  0%, 38%, 100% { transform: rotate(0deg); }
+  8%, 24% { transform: rotate(-5deg); }
+  16%, 30% { transform: rotate(3deg); }
+}
+
+@keyframes glass-lift {
+  0%, 40%, 100% { transform: rotate(0deg); }
+  60%, 80% { transform: rotate(-3deg); }
+}
+
+@keyframes bulb-nod {
+  0%, 100% { transform: rotate(0deg); }
+  25%, 40% { transform: rotate(-2.5deg); }
+  55%, 70% { transform: rotate(1.5deg); }
+}
+
+@keyframes bulb-light {
+  0%, 46%, 88%, 100% { fill: #3423c7; }
+  50%, 56%, 62%, 84% { fill: #79e7ff; }
+  53% { fill: #3423c7; }
+}
+
+@keyframes bulb-filament {
+  0%, 46%, 88%, 100% { stroke: #fff; }
+  50%, 56%, 62%, 84% { stroke: #3423c7; }
+  53% { stroke: #fff; }
+}
+
+@keyframes story-pulse {
+  50% { transform: scale(1.07); }
+}

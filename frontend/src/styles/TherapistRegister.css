@@ -1,0 +1,87 @@
+/* Therapist registration: only its own part. The layout and the common form styles are in AuthLayout.css.
+   --t  text can get up to 1.3 times bigger than the rest on small laptops (the longest label fits up to there).
+   --p  the same for the placeholders, which are longer: 1.13 is the most that fits. */
+
+.signup > * {
+  --t: max(var(--u), min(0.85px, calc(var(--u) * 1.3)));
+  --p: max(var(--u), min(0.85px, calc(var(--u) * 1.13)));
+}
+
+.signup .auth-panel { background: #dcd7ff; }
+
+/* One pixel away from the ones on the log-in, like in Figma */
+.signup .padlock-characters {
+  left: calc(var(--u) * 55.94);
+  top: calc(var(--u) * 127.95);
+}
+
+.signup .auth-error {
+  top: calc(var(--u) * 88);
+  padding: calc(var(--u) * 5) calc(var(--u) * 16);
+}
+
+/* ---------- Two columns, four rows ---------- */
+.signup .auth-label {
+  font-size: calc(var(--t) * 14);
+  white-space: nowrap;
+}
+
+.signup .auth-input {
+  width: calc(var(--u) * 304);
+  padding-bottom: calc(var(--u) * 6); /* the text is a little above the middle in the design */
+  font-size: calc(var(--t) * 15);
+}
+
+.signup .auth-input::placeholder { font-size: calc(var(--p) * 15); }
+
+.signup form .signup-left { left: 0; }
+.signup form .signup-right { left: calc(var(--u) * 328); }
+
+.signup form .signup-wide {
+  left: 0;
+  width: 100%;
+}
+
+.signup .signup-label-1 { top: calc(var(--u) * 151); }
+.signup .signup-input-1 { top: calc(var(--u) * 178); }
+.signup .signup-label-2 { top: calc(var(--u) * 261); }
+.signup .signup-input-2 { top: calc(var(--u) * 288); }
+.signup .signup-label-3 { top: calc(var(--u) * 371); }
+.signup .signup-input-3 { top: calc(var(--u) * 398); }
+.signup .signup-label-4 { top: calc(var(--u) * 481); }
+.signup .signup-input-4 { top: calc(var(--u) * 508); }
+
+.signup .signup-hint {
+  left: 0;
+  top: calc(var(--u) * 579);
+  color: #625b78;
+  font-size: calc(var(--t) * 14);
+  white-space: nowrap;
+}
+
+/* ---------- Consent ---------- */
+.signup .signup-checkbox { top: calc(var(--u) * 622); }
+
+.signup .signup-terms {
+  left: calc(var(--u) * 32);
+  top: calc(var(--u) * 620);
+  color: #625b78;
+  font-size: calc(var(--t) * 14);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.signup .signup-submit { top: calc(var(--u) * 666); }
+
+/* Not in the design: in the free margin under the button, with the style of the links of the log-in. */
+.signup .signup-back {
+  left: 0;
+  top: calc(var(--u) * 733);
+  color: #3423c7;
+  font-size: calc(var(--t) * 15);
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.signup .signup-back:hover { text-decoration: underline; }

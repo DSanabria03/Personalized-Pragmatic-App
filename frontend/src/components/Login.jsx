@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { api } from '../api';
+import AuthLayout from './AuthLayout';
+import PadlockArt from './PadlockArt';
+import '../styles/Login.css';
 
 export default function TherapistLogin({ onNavigate, onLogin }) {
   const [email, setEmail] = useState('');
@@ -24,71 +27,41 @@ export default function TherapistLogin({ onNavigate, onLogin }) {
   };
 
   return (
-    <>
-      <header className="header">
-        <div className="brand" onClick={() => onNavigate('go_home')}>
-          <div className="logo-dot">••</div>
-          <span className="brand-name">Pip</span>
-        </div>
-        <nav className="nav-links">
-          <button onClick={() => onNavigate('go_home')} className="nav-button">Home</button>
-          <button className="nav-button" style={{ fontWeight: 'bold' }}>For therapists</button>
-          <button onClick={() => onNavigate('go_settings')} className="nav-button">Settings</button>
-        </nav>
-      </header>
+    <AuthLayout name="login" art={<PadlockArt panel="/resources/login/panel.jpg" />} onNavigate={onNavigate}>
+      <p className="auth-eyebrow">Welcome back</p>
+      <p className="auth-subtitle">Log in to your therapist account.</p>
 
-      <main className="login-main">
-        <div className="left-card">
-          <div>
-            <span className="card-tag">For Therapists</span>
-            <h2 className="card-title">A little support.<br />A world of discovery.</h2>
-            <p className="card-desc">A shared space to help children feel, discover and grow.</p>
-          </div>
+      {error && <p className="auth-error" role="alert">{error}</p>}
 
-          <div className="figma-right-art-container">
-            <img src="/resources/register-characters.png" alt="Therapist Login Characters" className="figma-right-art-img" />
-          </div>
+      <form onSubmit={handleLogin}>
+        <label className="auth-label login-label--email" htmlFor="login-email">Work email</label>
+        <input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@practice.com" required className="auth-input login-input--email" />
 
-          <div className="bottom-banner">Log in to guide their next little step.</div>
-        </div>
-        
-        <div className="right-form-container">
-          <span className="form-tag">Welcome Back</span>
-          <h2 className="form-title">Your next step starts here.</h2>
-          <p className="form-subtitle">Log in to your therapist account.</p>
+        <label className="auth-label login-label--password" htmlFor="login-password">Password</label>
+        <input id="login-password" type={showPassword ? 'text' : 'password'} value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter your password" required className="auth-input login-input--password" />
+        <button type="button" className="login-show" onClick={() => setShowPassword((v) => !v)}>
+          {showPassword ? 'Hide' : 'Show'}
+        </button>
+        <a href="#forgot" className="login-forgot"
+          onClick={(e) => { e.preventDefault(); alert('Not available yet in this prototype.'); }}>
+          Forgot password?
+        </a>
 
-          {error && <div style={{ color: 'red', marginBottom: '10px', fontSize: '13px' }}>{error}</div>}
+        <button type="submit" className="auth-submit" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>
+      </form>
 
-          <form onSubmit={handleLogin}>
-            <div className="form-group">
-              <label className="form-label">Work email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@practice.com" required className="input-field" />
-            </div>
+      <button type="button" className="login-register" onClick={() => onNavigate('go_register')}>
+        New to Pip? Create a therapist account
+      </button>
 
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <div className="password-wrapper">
-                <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required className="input-field" />
-                <button type="button" className="show-btn" onClick={() => setShowPassword((v) => !v)}>{showPassword ? 'Hide' : 'Show'}</button>
-              </div>
-              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Not available yet in this prototype.'); }} className="forgot-link">Forgot password?</a>
-            </div>
-
-            <button type="submit" className="submit-btn" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>
-          </form>
-
-          <button type="button" className="purple-link register-link" onClick={() => onNavigate('go_register')}>
-            New to Pip? Create a therapist account
-          </button>
-
-          <div className="play-card">
-            <p>Here to play?</p>
-            <button onClick={() => onNavigate('go_child_login')} className="purple-link" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px' }}>
-              Use the code from your therapist instead →
-            </button>
-          </div>
-        </div>
-      </main>
-    </>
+      <button type="button" className="login-play" onClick={() => onNavigate('go_child_login')}>
+        <span className="login-play-title">Here to play?</span>
+        <span className="login-play-text">Use the code from your therapist instead{'\u00a0 '}<span className="login-play-arrow" aria-hidden="true">→</span>
+        </span>
+      </button>
+    </AuthLayout>
   );
 }

@@ -1,0 +1,199 @@
+/* Shared by the therapist log-in, registration, add a child and child code. Every number is a pixel of the 1512 x 982 Figma frame, like in Home.css.
+   --u  one frame pixel on this screen: it all fits, in width and in height. In extremely short windows
+        (a big browser zoom, for example) it stops shrinking and the page scrolls.
+   --t  one pixel of text in the form: on small laptops it shrinks less than the rest, so it can still be read.
+        Each page says how much bigger it can get before it stops fitting in the boxes of the design.
+   --h  one pixel of the header: the same as on Home, except in very small windows, where it would touch the cards.
+   Nothing on these pages is animated. */
+
+.auth {
+  position: relative;
+  container-type: inline-size;
+  width: 100%;
+  background: #e8e6fe;
+}
+
+.auth > * {
+  --u: min(calc(100cqw / 1512), max(calc(100dvh / 982), 0.5px));
+  --h: max(var(--u), min(0.8px, calc(var(--u) * 1.25)));
+}
+
+.auth-screen {
+  position: relative;
+  height: max(100dvh, calc(var(--u) * 982));
+  overflow: hidden;
+  font-family: 'Alexandria', sans-serif;
+}
+
+.auth-stage {
+  position: absolute;
+  left: calc(50% - var(--u) * 756);
+  top: calc(50% - var(--u) * 491);
+  width: calc(var(--u) * 1512);
+  height: calc(var(--u) * 982);
+}
+
+.auth-stage > *,
+.auth-panel img,
+.auth-content > :not(form),
+.auth-content form > * {
+  position: absolute;
+  max-width: none;
+}
+
+/* ---------- Illustration ---------- */
+.auth-panel {
+  left: calc(var(--u) * 56);
+  top: calc(var(--u) * 130);
+  width: calc(var(--u) * 608);
+  height: calc(var(--u) * 796);
+  overflow: hidden;
+  border-radius: calc(var(--u) * 32);
+}
+
+.auth-panel img {
+  left: -0.18%;
+  top: -28.89%;
+  width: 100.5%;
+  height: 137.54%;
+}
+
+.auth-title {
+  left: calc(var(--u) * 84);
+  top: calc(var(--u) * 209);
+  width: calc(var(--u) * 565);
+  color: #fff;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 100);
+  font-weight: 400;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+/* ---------- Form ---------- */
+.auth-card {
+  left: calc(var(--u) * 712);
+  top: calc(var(--u) * 130);
+  width: calc(var(--u) * 744);
+  height: calc(var(--u) * 796);
+  border-radius: calc(var(--u) * 32);
+  background: #fff;
+}
+
+.auth-content {
+  left: calc(var(--u) * 760);
+  top: calc(var(--u) * 160);
+  width: calc(var(--u) * 632);
+  height: calc(var(--u) * 780);
+  color: #2b272b;
+  line-height: 1.35;
+}
+
+.auth-content button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.auth-content :is(button, a):focus-visible {
+  outline: 2px solid #3423c7;
+  outline-offset: 3px;
+}
+
+.auth-content .auth-eyebrow {
+  top: calc(var(--u) * 21);
+  color: #625b78;
+  font-size: calc(var(--t) * 13);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.auth-content .auth-subtitle {
+  top: calc(var(--u) * 54);
+  color: #625b78;
+  font-size: calc(var(--t) * 17);
+}
+
+/* Not in the design: it uses the empty space above the fields, so nothing moves when it appears. */
+.auth-content .auth-error {
+  top: calc(var(--u) * 94);
+  width: 100%;
+  padding: calc(var(--u) * 8) calc(var(--u) * 16);
+  border-radius: calc(var(--u) * 14);
+  background: #ffe8ef;
+  color: #a3123f;
+  font-size: calc(var(--t) * 14);
+  line-height: 1.3;
+}
+
+.auth-content .auth-label {
+  left: 0;
+  color: #2b272b;
+  font-size: calc(var(--t) * 15);
+  font-weight: 500;
+}
+
+.auth-content .auth-input {
+  left: 0;
+  width: 100%;
+  height: calc(var(--u) * 58);
+  padding: 0 calc(var(--u) * 17);
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 14);
+  background: #fff;
+  color: #2b272b;
+  font-family: inherit;
+  font-size: calc(var(--t) * 17);
+}
+
+.auth-content .auth-input::placeholder {
+  color: #625b78;
+  opacity: 1;
+}
+
+.auth-content .auth-input:focus {
+  outline: 2px solid #3423c7;
+  outline-offset: 1px;
+}
+
+.auth-content .auth-submit {
+  left: 0;
+  top: calc(var(--u) * 450);
+  width: 100%;
+  height: calc(var(--u) * 56);
+  border-radius: calc(var(--u) * 28);
+  background: #ff6498;
+  font-size: calc(var(--t) * 17);
+  font-weight: 500;
+}
+
+.auth-content .auth-submit:hover:not(:disabled) { background: #ff4f8b; }
+
+.auth-content .auth-submit:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.auth-content .auth-checkbox {
+  left: 0;
+  width: calc(var(--u) * 20);
+  height: calc(var(--u) * 20);
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 5);
+  background: #fff center / 80% no-repeat;
+  appearance: none;
+  cursor: pointer;
+}
+
+.auth-content .auth-checkbox:checked {
+  border-color: #3423c7;
+  background-color: #3423c7;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3 3 7-7' fill='none' stroke='white' stroke-width='2.5'/%3E%3C/svg%3E");
+}
+
+.auth-content .auth-checkbox:focus-visible {
+  outline: 2px solid #3423c7;
+  outline-offset: 2px;
+}

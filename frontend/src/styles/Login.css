@@ -1,0 +1,93 @@
+/* Therapist log-in: only its own part. The layout and the common form styles are in AuthLayout.css. */
+
+.login > * {
+  --t: max(var(--u), min(0.85px, calc(var(--u) * 1.4))); /* 1.4 is the most that fits */
+}
+
+.login .login-label--email { top: calc(var(--u) * 178); }
+.login .login-label--password { top: calc(var(--u) * 286); }
+
+.login .login-input--email { top: calc(var(--u) * 208); }
+
+.login .login-input--password {
+  top: calc(var(--u) * 316);
+  padding-right: calc(var(--u) * 96); /* room for Show / Hide */
+}
+
+.login .login-show {
+  left: calc(var(--u) * 554);
+  top: calc(var(--u) * 325);
+  width: calc(var(--u) * 70);
+  height: calc(var(--u) * 39);
+  padding-left: calc(var(--u) * 8);
+  color: #625b78;
+  font-size: calc(var(--t) * 14);
+  font-weight: 500;
+  text-align: left;
+}
+
+/* Right-aligned: at its position in Figma the "?" falls outside the form and gets cut. */
+.login .login-forgot {
+  right: 0;
+  top: calc(var(--u) * 390);
+  color: #3423c7;
+  font-size: calc(var(--t) * 15);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.login .login-forgot:hover,
+.login .login-register:hover {
+  text-decoration: underline;
+}
+
+.login .login-register {
+  left: 0;
+  top: calc(var(--u) * 538);
+  color: #3423c7;
+  font-size: calc(var(--t) * 16);
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.login .login-play {
+  left: 0;
+  top: calc(var(--u) * 620);
+  width: 100%;
+  height: calc(var(--u) * 92);
+  border-radius: calc(var(--u) * 22);
+  background: #dcd7ff;
+  text-align: left;
+}
+
+.login .login-play:hover { background: #d0c9ff; }
+
+.login-play-title,
+.login-play-text {
+  position: absolute;
+  left: calc(var(--u) * 24);
+  white-space: nowrap;
+}
+
+.login-play-title {
+  top: calc(var(--u) * 19);
+  font-family: Arial, sans-serif;
+  font-size: calc(var(--t) * 15);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.login-play-text {
+  top: calc(var(--u) * 53);
+  font-size: calc(var(--t) * 16);
+  line-height: 1.35;
+}
+
+/* Alexandria has no arrow: this is the small one of the design. */
+.login-play-arrow {
+  font-family: Arial, sans-serif;
+  font-size: 0.65em;
+  font-weight: 700;
+}

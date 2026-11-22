@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { api } from '../api';
+import AuthLayout from './AuthLayout';
+import QuestArt from './QuestArt';
+import '../styles/AddChild.css';
 
 export default function AddChild({ onNavigate, therapistName, onCreated }) {
   const [childForm, setChildForm] = useState({ name: '', age: '', parentEmail: '', acceptedPermission: false });
@@ -32,66 +35,50 @@ export default function AddChild({ onNavigate, therapistName, onCreated }) {
   };
 
   return (
-    <>
-      <header className="register-header">
-        <div className="register-header-left">
-          <button type="button" className="register-logo" onClick={() => onNavigate('go_home')}>••</button>
-          <span style={{ fontWeight: 'bold', borderBottom: '2px solid #101914', paddingBottom: '8px' }}>Add a child</span>
+    <AuthLayout name="add-child" art={<QuestArt />} onNavigate={onNavigate}>
+      <p className="auth-eyebrow">Your practice · Add a child</p>
+      <p className="auth-subtitle">Register a child to create their profile and login code.</p>
+
+      {error && <p className="auth-error" role="alert">{error}</p>}
+
+      <form onSubmit={handleSubmit}>
+        <label className="auth-label add-child-label-name" htmlFor="add-child-name">First name or nickname</label>
+        <input id="add-child-name" className="auth-input add-child-input-name" name="name"
+          value={childForm.name} onChange={handleChildFormChange} placeholder="Dan" required
+          aria-describedby="add-child-name-hint" />
+
+        <label className="auth-label add-child-label-age" htmlFor="add-child-age">Age</label>
+        <input id="add-child-age" className="auth-input add-child-input-age" name="age"
+          value={childForm.age} onChange={handleChildFormChange} placeholder="8 years" required />
+        <p id="add-child-name-hint" className="add-child-hint add-child-hint-name">This is the name they’ll see in Pip.</p>
+
+        <label className="auth-label add-child-label-email" htmlFor="add-child-email">Parent or guardian email (optional)</label>
+        <input id="add-child-email" className="auth-input add-child-input-email" type="email" name="parentEmail"
+          value={childForm.parentEmail} onChange={handleChildFormChange} placeholder="parent@example.com"
+          aria-describedby="add-child-email-hint" />
+        <p id="add-child-email-hint" className="add-child-hint add-child-hint-email">
+          For sharing the login details. Not needed for the child to log in.
+        </p>
+
+        <div className="add-child-therapist">
+          <span className="add-child-therapist-title">Assigned therapist</span>
+          <span className="add-child-therapist-name" title={therapistName || 'You'}>{therapistName || 'You'}</span>
         </div>
-        <nav className="register-nav">
-          <button type="button" onClick={() => onNavigate('go_dashboard')}>Dashboard</button>
-          <button type="button" onClick={() => onNavigate('go_settings')}>Settings</button>
-        </nav>
-      </header>
 
-      <main className="register-main">
-        <aside className="left-card">
-          <div>
-            <h1 style={{ fontSize: 'clamp(32px, 3.5vw, 56px)', fontWeight: '900', fontFamily: 'monospace', lineHeight: 1.15 }}>Their adventure<br />starts with you.</h1>
-            <p style={{ marginTop: '16px', fontSize: '15px', color: '#374151' }}>Create a child profile in your practice. We’ll make a code for them to log in.</p>
-          </div>
+        <input id="add-child-permission" className="auth-checkbox add-child-checkbox" type="checkbox" name="acceptedPermission"
+          checked={childForm.acceptedPermission} onChange={handleChildFormChange} required />
+        <label className="add-child-permission" htmlFor="add-child-permission">
+          I confirm I have parent or guardian permission to create{' '}<br />and manage this child’s account.
+        </label>
 
-          <div className="figma-right-art-container">
-            <img src="/resources/register-characters.png" alt="Add Child Characters" className="figma-right-art-img" />
-          </div>
+        <button type="submit" className="auth-submit add-child-submit" disabled={busy}>
+          {busy ? 'Creating…' : 'Create child profile & login code'}
+        </button>
+      </form>
 
-          <p style={{ fontSize: '13px', color: '#555', position: 'relative', zIndex: 2 }}>No child email or password needed.</p>
-        </aside>
-
-        <section className="register-content">
-          <p className="register-step">YOUR PRACTICE · ADD A CHILD</p>
-          <h2>A new little explorer.</h2>
-          <p className="register-description">Register a child to create their profile and login code.</p>
-
-          {error && <div style={{ color: '#b00020', marginBottom: '10px', fontSize: '14px' }}>{error}</div>}
-          <form className="register-form" onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
-              <label>First name or nickname<input name="name" value={childForm.name} onChange={handleChildFormChange} placeholder="Dan" required /></label>
-              <label>Age<input name="age" value={childForm.age} onChange={handleChildFormChange} placeholder="8 years" required /></label>
-            </div>
-            <small style={{ marginTop: '-10px', display: 'block' }}>This is the name they'll see in Pip.</small>
-
-            <label style={{ marginTop: '10px' }}>Parent or guardian email (optional)<input type="email" name="parentEmail" value={childForm.parentEmail} onChange={handleChildFormChange} placeholder="parent@example.com" /></label>
-            <small style={{ marginTop: '-10px', display: 'block' }}>For sharing the login details. Not needed for the child to log in.</small>
-
-            <div style={{ background: '#e5f0ff', padding: '16px', borderRadius: '16px', margin: '10px 0' }}>
-              <span style={{ fontSize: '11px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase' }}>Assigned therapist</span>
-              <div style={{ fontWeight: 'bold', color: '#111', marginTop: '4px' }}>{therapistName || 'You'}</div>
-            </div>
-
-            <label className="register-terms">
-              <input type="checkbox" name="acceptedPermission" checked={childForm.acceptedPermission} onChange={handleChildFormChange} required />
-              <span>I confirm I have parent or guardian permission to create and manage this child's account.</span>
-            </label>
-
-            <button type="submit" className="register-submit" disabled={busy}>{busy ? 'Creating…' : 'Create child profile & login code'}</button>
-          </form>
-
-          <button type="button" className="register-back-link" onClick={() => onNavigate('go_dashboard')}>
-            Cancel and return to children
-          </button>
-        </section>
-      </main>
-    </>
+      <button type="button" className="add-child-cancel" onClick={() => onNavigate('go_dashboard')}>
+        Cancel and return to children
+      </button>
+    </AuthLayout>
   );
 }

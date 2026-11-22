@@ -1,0 +1,64 @@
+/* Header shared by the redesigned pages. --h is one Figma pixel: each page sets it. */
+.page-header {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  height: calc(var(--h) * 100);
+  font-family: 'Alexandria', sans-serif;
+  font-size: calc(var(--h) * 19);
+  font-weight: 500;
+}
+
+.page-header button {
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.page-header button:focus-visible {
+  outline: 2px solid #3423c7;
+  outline-offset: 4px;
+}
+
+.page-logo {
+  position: absolute;
+  left: calc(var(--h) * 49);
+  top: calc(var(--h) * 56);
+  width: calc(var(--h) * 42);
+  height: calc(var(--h) * 42);
+  border-radius: 50%;
+}
+
+/* The logo file has a large transparent margin, so it is bigger than its button. */
+.page-logo img {
+  position: absolute;
+  left: calc(var(--h) * -36);
+  top: calc(var(--h) * -50);
+  width: calc(var(--h) * 114);
+  height: calc(var(--h) * 161);
+  max-width: none;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.page-nav {
+  position: absolute;
+  left: calc(var(--h) * 111);
+  top: calc(var(--h) * 65);
+  display: flex;
+}
+
+.page-link {
+  width: calc(var(--h) * 84);
+  height: calc(var(--h) * 23);
+  color: #000;
+  line-height: normal;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.page-nav > :nth-child(2) { margin-left: calc(var(--h) * 13); }
+.page-nav > :nth-child(3) { margin-left: calc(var(--h) * 10); }
+
+.page-header button.page-link:hover { color: #3423c7; }
