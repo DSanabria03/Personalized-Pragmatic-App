@@ -13,13 +13,7 @@ import StoryPlay from './components/StoryPlay';
 import TherapistDashboard from './components/TherapistDashboard';
 import TherapistLogin from './components/Login';
 import TherapistRegister from './components/TherapistRegister';
-import { getPip } from './data/mockData';
-
-// The chosen Pip's name as Pip says it in the story: "MILO" (card label) -> "Milo". No Pip chosen -> "Pip".
-function pipDisplayName(pipId) {
-  const name = getPip(pipId)?.name;
-  return name ? name.charAt(0) + name.slice(1).toLowerCase() : 'Pip';
-}
+import { getPip } from './data/pips';
 
 // Which screen each button ("action") opens.
 const ACTIONS = {
@@ -40,7 +34,7 @@ const ACTIONS = {
 const NEEDS = { dashboard: 'therapist', 'add-child': 'therapist', 'child-code': 'therapist', 'child-home': 'child', 'child-setup': 'child' };
 
 // Redesigned screens: their design has no footer. The other screens keep it until they are redesigned.
-const NO_FOOTER = ['home', 'login', 'register', 'add-child', 'child-code', 'child-login'];
+const NO_FOOTER = ['home', 'login', 'register', 'add-child', 'child-code', 'child-login', 'child-setup'];
 
 function startScreen(session) {
   if (session && session.role === 'child') return 'child-home';
@@ -73,16 +67,27 @@ export default function App() {
   }, []);
 
   // Is the saved login still valid? (e.g. the code was reset by the therapist)
+  // For a child it also brings their nickname and Pip from the database (they may have changed on another computer).
   useEffect(() => {
     if (!loadSession()) return;
-    api('/api/me').catch((error) => {
-      if (error.status === 401) logout();
-    });
+    api('/api/me')
+      .then((me) => {
+        if (me.role !== 'child') return;
+        setSession((current) => {
+          if (!current || current.role !== 'child') return current;
+          const s = { ...current, nickname: me.child.nickname, pip: me.child.pip };
+          saveSession(s);
+          return s;
+        });
+      })
+      .catch((error) => {
+        if (error.status === 401) logout();
+      });
   }, [logout]);
 
   const login = (data, next) => {
     const s = data.role === 'child'
-      ? { token: data.token, role: 'child', name: data.child.name }
+      ? { token: data.token, role: 'child', name: data.child.name, nickname: data.child.nickname, pip: data.child.pip }
       : { token: data.token, role: 'therapist', name: data.therapist.display_name, practice: data.therapist.practice };
     saveSession(s);
     setSession(s);
@@ -98,9 +103,11 @@ export default function App() {
     go(target);
   };
 
-  // "My Pip": the child's nickname and chosen Pip are kept with their login (cleared on log out).
-  const updateChildProfile = (selection) => {
-    const s = { ...session, ...selection };
+  // "Choose your Pip": the nickname and the Pip are saved in the database (PUT /api/profile).
+  // The session keeps a copy so the screens can show them without asking the backend again.
+  const updateChildProfile = async ({ nickname, pip }) => {
+    const child = await api('/api/profile', { method: 'PUT', body: { nickname, pip: pip || '' } });
+    const s = { ...session, nickname: child.nickname, pip: child.pip };
     saveSession(s);
     setSession(s);
   };
@@ -133,7 +140,7 @@ export default function App() {
       {shown === 'child-setup' && (
         <ChildSetup
           initialName={session.nickname || session.name}
-          initialPip={session.pip || 'milo'}
+          initialPip={session.pip || null}
           onNavigate={onNavigate}
           onComplete={updateChildProfile}
         />
@@ -153,7 +160,7 @@ export default function App() {
           language={settings.language}
           voice={settings.voice}
           therapistPause={settings.grownUpPause}
-          pipName={pipDisplayName(session && session.pip)}
+          pipName="Pip"
           pipIdle={getPip(session && session.pip)?.img}
           onExit={() => go(childOrHome)}
           onFinished={(result) => { setLastResult(result); go('story-done'); }}

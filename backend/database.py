@@ -7,7 +7,8 @@ To move to MySQL later, only this file (and the SQL in services/accounts.py + se
 
 Tables
     therapists   one row per therapist account (password stored as a secure hash, never in plain text)
-    children     one row per child, linked to a therapist, with a login code like PIP742
+    children     one row per child, linked to a therapist, with a login code like PIP742,
+                 and what the child chose in "Choose your Pip" (nickname and Pip, empty until then)
     tokens       who is logged in (a random key per login, sent by the browser with every request)
     story_runs   one row per time a child plays a story (start, end, results, XP)
     attempts     one row per picture the child clicks (which scene, which option, right or not, what Pip said)
@@ -40,6 +41,8 @@ CREATE TABLE IF NOT EXISTS children (
     age           TEXT DEFAULT '',
     parent_email  TEXT DEFAULT '',
     code          TEXT NOT NULL UNIQUE,
+    nickname      TEXT DEFAULT '',          -- what Pip calls the child ('' = their name)
+    pip           TEXT DEFAULT '',          -- the chosen Pip: milo, bob, henry or thomas ('' = none yet)
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS tokens (
@@ -100,7 +103,18 @@ def db():
         con.close()
 
 
+# Columns added after the first version: a database created before them gets them here (its data is kept).
+NEW_COLUMNS = {
+    "children": {"nickname": "TEXT DEFAULT ''", "pip": "TEXT DEFAULT ''"},
+}
+
+
 def init_db() -> None:
-    """Creates the tables if they don't exist yet. Called once when the backend starts."""
+    """Creates the tables if they don't exist yet, and adds any missing column. Called once when the backend starts."""
     with db() as con:
         con.executescript(SCHEMA)
+        for table, columns in NEW_COLUMNS.items():
+            existing = {row["name"] for row in con.execute(f"PRAGMA table_info({table})")}
+            for name, definition in columns.items():
+                if name not in existing:
+                    con.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")

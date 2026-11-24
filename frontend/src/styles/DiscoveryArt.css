@@ -1,7 +1,7 @@
-/* Left card of the child log-in. Static. Same scale as AuthLayout.css.
+/* Left card of the child log-in and of "Choose your Pip". Static. Same scale as AuthLayout.css.
    Inside the characters box the pieces are placed in percentages of the box, like in Figma. */
 
-.child-login .auth-panel { background: #dcd7ff; }
+.discovery-panel { background: #dcd7ff; }
 
 .discovery-characters {
   left: calc(var(--u) * 55);

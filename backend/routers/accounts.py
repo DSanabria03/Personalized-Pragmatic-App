@@ -15,6 +15,7 @@ Therapist only (send "Authorization: Bearer <token>"):
 
 Child only:
     GET  /api/progress              XP, level, badges, this week (for the child's home and the "Great job" screen)
+    PUT  /api/profile               nickname + chosen Pip ("Choose your Pip")
 """
 
 from typing import Annotated
@@ -46,6 +47,11 @@ class TherapistLogin(BaseModel):
 
 class ChildLogin(BaseModel):
     code: str
+
+
+class ChildProfile(BaseModel):
+    nickname: str
+    pip: str = ""
 
 
 class NewChild(BaseModel):
@@ -159,3 +165,12 @@ def reset_code(child_id: ChildId, authorization: str | None = Header(default=Non
 def my_progress(language: str = "en", authorization: str | None = Header(default=None)):
     child = current_child(authorization)
     return progress.child_progress(child["id"], language)
+
+
+@router.put("/profile")
+def update_profile(body: ChildProfile, authorization: str | None = Header(default=None)):
+    child = current_child(authorization)
+    try:
+        return accounts.update_child_profile(child["id"], body.nickname, body.pip)
+    except AccountError as error:
+        _fail(error)

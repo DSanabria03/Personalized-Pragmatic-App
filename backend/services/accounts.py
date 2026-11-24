@@ -57,6 +57,7 @@ def _therapist_public(row) -> dict:
 
 def _child_public(row) -> dict:
     return {"id": row["id"], "name": row["name"], "age": row["age"], "code": row["code"],
+            "nickname": row["nickname"] or "", "pip": row["pip"] or "",
             "therapist_id": row["therapist_id"], "created_at": row["created_at"]}
 
 
@@ -141,6 +142,23 @@ def login_child(code: str):
         if not row:
             raise AccountError("We couldn't find this code. Ask your therapist or your grown-up for help.", 401)
         return {"token": _new_token(con, "child", row["id"]), "role": "child", "child": _child_public(row)}
+
+
+# The Pips a child can choose. Same ids as frontend/src/data/pips.js (the pictures live in the frontend).
+PIP_IDS = ("milo", "bob", "henry", "thomas")
+
+
+def update_child_profile(child_id: int, nickname: str, pip: str = ""):
+    """What the child chose in "Choose your Pip". pip = '' means none chosen (the app then shows Pip's face)."""
+    nickname = (nickname or "").strip()[:40]
+    if not nickname:
+        raise AccountError("Please tell Pip what to call you.")
+    pip = (pip or "").strip().lower()
+    if pip and pip not in PIP_IDS:
+        raise AccountError("This Pip doesn't exist.")
+    with db() as con:
+        con.execute("UPDATE children SET nickname = ?, pip = ? WHERE id = ?", (nickname, pip, child_id))
+        return _child_public(con.execute("SELECT * FROM children WHERE id = ?", (child_id,)).fetchone())
 
 
 def child_therapist(child_id: int) -> dict:

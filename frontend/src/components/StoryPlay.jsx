@@ -69,7 +69,7 @@ export default function StoryPlay({
   storyId = 'the_secret_message',
   language = 'en',
   pipName = 'Pip',
-  pipIdle = null, // the chosen Pip's picture (e.g. /resources/pip-milo.png); none -> Pip's logo face
+  pipIdle = null, // the chosen Pip's picture (e.g. /resources/pips/milo.png); none -> Pip's logo face
   pipTalking = null, // optional other picture (e.g. a GIF) while Pip speaks; none -> pipIdle
   childName = null, // only for guests: a logged-in child's name comes from their account
   voice = true, // false: no sound, the sentences are only shown

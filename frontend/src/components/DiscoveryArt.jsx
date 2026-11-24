@@ -3,12 +3,12 @@ import '../styles/DiscoveryArt.css';
 const ASSETS = '/resources/child-login';
 const CIRCLES = '/resources/login';
 
-// Left card of the child log-in. Static.
+// Left card of the child log-in and of "Choose your Pip". Static.
 export default function DiscoveryArt() {
   return (
     <>
       {/* From back to front: background, title, characters, circles */}
-      <div className="auth-panel" />
+      <div className="auth-panel discovery-panel" />
       {/* Same line breaks as the design */}
       <h1 className="auth-title">
         Big finds{' '}<br />start{' '}<br />small.
