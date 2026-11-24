@@ -1,0 +1,600 @@
+/* One child's page (Figma 645:681). Pixels of the frame (--u, see TherapistLayout.css).
+   The sections under "All-time progress" are not in the Figma: they reuse the cards and type of the design. */
+
+.cd p,
+.cd h1,
+.cd h2,
+.cd h3,
+.cd ul {
+  margin: 0;
+  padding: 0;
+}
+
+.cd ul { list-style: none; }
+
+.cd {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 34);
+}
+
+/* ---------- Header ---------- */
+.cd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--u) * 24);
+  height: calc(var(--u) * 92);
+}
+
+.cd .cd-switcher {
+  flex: 0 0 calc(var(--u) * 254);
+  gap: calc(var(--u) * 12);
+  height: calc(var(--u) * 46);
+  padding: 0 calc(var(--u) * 18);
+  border-radius: calc(var(--u) * 100);
+  font-size: calc(var(--u) * 14);
+}
+
+.cd-switcher span {
+  flex: 1 1 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cd-switcher img {
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+}
+
+/* The page's own lists follow the column gap: the error and empty messages don't add space. */
+.cd > .tl-error { margin: 0; }
+
+/* ---------- Profile ---------- */
+.cd-profile {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 40);
+  height: calc(var(--u) * 214);
+  padding: calc(var(--u) * 28);
+  border-radius: calc(var(--u) * 24);
+  background: #dcd7ff;
+}
+
+.cd-avatar {
+  flex: none;
+  width: calc(var(--u) * 95);
+  height: calc(var(--u) * 95);
+  border-radius: calc(var(--u) * 47);
+  object-fit: cover;
+}
+
+.cd-avatar.is-default {
+  padding: calc(var(--u) * 20);
+  background: #f4f2ff;
+  object-fit: contain;
+}
+
+.cd-identity {
+  display: flex;
+  flex: 0 0 calc(var(--u) * 438);
+  flex-direction: column;
+  gap: calc(var(--u) * 9);
+  min-width: 0;
+}
+
+.cd-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--u) * 16);
+  font-size: calc(var(--u) * 14);
+  white-space: nowrap;
+}
+
+.cd-name {
+  overflow: hidden;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 29);
+  line-height: 1.15;
+  text-overflow: ellipsis;
+}
+
+.cd-description {
+  color: #625b78;
+  font-size: calc(var(--u) * 14);
+}
+
+.cd-last {
+  color: #625b78;
+  font-size: calc(var(--u) * 12);
+  font-weight: 700;
+}
+
+.cd-divider {
+  flex: none;
+  width: 1px;
+  height: calc(var(--u) * 163);
+}
+
+.cd-journey {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: calc(var(--u) * 24);
+  min-width: 0;
+}
+
+.cd-journey-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  white-space: nowrap;
+}
+
+.cd-journey-title {
+  color: #625b78;
+  font-size: calc(var(--u) * 11);
+  font-weight: 600;
+}
+
+.cd .cd-edit {
+  color: #3423c7;
+  font-size: calc(var(--u) * 13);
+  font-weight: 500;
+}
+
+.cd-plan {
+  display: flex;
+  gap: calc(var(--u) * 20);
+}
+
+.cd-plan-focus { flex: 0 0 calc(var(--u) * 146); }
+.cd-plan-support { flex: 0 0 calc(var(--u) * 115); }
+.cd-plan-goal { flex: 1 1 0; }
+
+.cd-plan-label {
+  margin-bottom: calc(var(--u) * 8) !important;
+  color: #625b78;
+  font-size: calc(var(--u) * 11);
+  white-space: nowrap;
+}
+
+.cd-plan-value {
+  font-size: calc(var(--u) * 14);
+  font-weight: 500;
+}
+
+/* ---------- Little steps this week ---------- */
+.cd-progress,
+.cd-more {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 20);
+}
+
+.cd-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(var(--u) * 44);
+}
+
+.cd-range {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 10);
+  height: calc(var(--u) * 40);
+  padding: 0 calc(var(--u) * 16);
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 100);
+  background: #fff;
+  font-size: calc(var(--u) * 13);
+  white-space: nowrap;
+}
+
+.cd-range img {
+  width: calc(var(--u) * 16);
+  height: calc(var(--u) * 16);
+}
+
+.cd-metrics {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 32);
+  height: calc(var(--u) * 108);
+  padding: 0 calc(var(--u) * 28);
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 24);
+  background: #fff;
+}
+
+.cd-metric {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: calc(var(--u) * 16);
+  min-width: 0;
+}
+
+.cd-metric-symbol {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--u) * 44);
+  height: calc(var(--u) * 44);
+  border-radius: calc(var(--u) * 14);
+  background: #dcd7ff;
+}
+
+.cd-metric-symbol img {
+  width: calc(var(--u) * 21);
+  height: calc(var(--u) * 21);
+}
+
+.cd-metric-content {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.cd-metric-label,
+.cd-metric-value {
+  color: #625b78;
+  font-size: calc(var(--u) * 12);
+}
+
+.cd-metric-value {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--u) * 12);
+  margin-top: calc(var(--u) * 3) !important;
+}
+
+.cd-metric-value span {
+  color: #2b272b;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 24);
+  line-height: 1.15;
+}
+
+.cd-metric-divider {
+  flex: none;
+  width: 1px;
+  height: calc(var(--u) * 46);
+  background: #f4f2ff;
+}
+
+.cd-pair {
+  display: grid;
+  grid-template-columns: 758fr 470fr;
+  gap: calc(var(--u) * 24);
+  align-items: stretch;
+}
+
+.cd-card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 21);
+  min-width: 0;
+  padding: calc(var(--u) * 28);
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 24);
+  background: #fff;
+}
+
+.cd-chart { height: calc(var(--u) * 310); }
+
+.cd-card-title {
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 20);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.cd-card-sub {
+  margin-top: calc(var(--u) * 4) !important;
+  color: #625b78;
+  font-size: calc(var(--u) * 12);
+}
+
+.cd-bar-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--u) * 12);
+  margin-bottom: calc(var(--u) * 10) !important;
+  font-size: calc(var(--u) * 14);
+  white-space: nowrap;
+}
+
+.cd-bar-label span + span {
+  color: #625b78;
+  font-size: calc(var(--u) * 13);
+}
+
+.cd-track {
+  height: calc(var(--u) * 8);
+  overflow: hidden;
+  border-radius: calc(var(--u) * 4);
+  background: #f4f2ff;
+}
+
+.cd-track > div {
+  height: 100%;
+  border-radius: calc(var(--u) * 4);
+  background: #3423c7;
+}
+
+.cd-note {
+  color: #625b78;
+  font-size: calc(var(--u) * 11);
+}
+
+.cd-muted {
+  color: #625b78;
+  font-size: calc(var(--u) * 13);
+}
+
+/* Current focus */
+.cd-focus {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--u) * 17);
+  min-width: 0;
+  height: calc(var(--u) * 310);
+  padding: calc(var(--u) * 28);
+  border-radius: calc(var(--u) * 24);
+  background: #f4f2ff;
+}
+
+.cd-focus-eyebrow {
+  color: #3423c7;
+  font-size: calc(var(--u) * 11);
+  font-weight: 600;
+}
+
+.cd-focus-title {
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 24);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.cd-focus-text {
+  color: #625b78;
+  font-size: calc(var(--u) * 14);
+}
+
+.cd-focus-approach {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 8);
+  color: #625b78;
+  font-size: calc(var(--u) * 12);
+  white-space: nowrap;
+}
+
+.cd-focus-approach img {
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+}
+
+.cd .cd-focus-button {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 12);
+  height: calc(var(--u) * 42);
+  padding: 0 calc(var(--u) * 18);
+  border-radius: calc(var(--u) * 100);
+  background: #3423c7;
+  color: #fff;
+  font-size: calc(var(--u) * 13);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cd-focus-button img {
+  width: calc(var(--u) * 16);
+  height: calc(var(--u) * 16);
+}
+
+/* ---------- All-time progress (not in the Figma) ---------- */
+.cd-more { margin-top: calc(var(--u) * 14); }
+
+.cd-metrics-4 .cd-metric-value span { font-size: calc(var(--u) * 24); }
+
+.cd-scenes { gap: calc(var(--u) * 21); }
+
+.cd-code {
+  align-items: flex-start;
+  gap: calc(var(--u) * 12);
+  background: #fff;
+}
+
+.cd-code-value {
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 29);
+  line-height: 1.15;
+  letter-spacing: 0.06em;
+}
+
+.cd-code .cd-card-sub { margin-top: 0 !important; }
+
+.cd .cd-outline {
+  height: calc(var(--u) * 42);
+  margin-top: calc(var(--u) * 6);
+  padding: 0 calc(var(--u) * 18);
+  border: 1px solid #3423c7;
+  border-radius: calc(var(--u) * 100);
+  color: #3423c7;
+  font-size: calc(var(--u) * 13);
+  font-weight: 500;
+}
+
+.cd-level { gap: calc(var(--u) * 12); }
+
+.cd-level-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: calc(var(--u) * 13);
+  font-weight: 600;
+  color: #3423c7;
+}
+
+.cd-level .cd-card-sub { margin-top: 0 !important; }
+
+.cd-badges {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: calc(var(--u) * 16);
+  margin-top: calc(var(--u) * 12) !important;
+}
+
+.cd-badges li {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--u) * 12);
+  min-width: 0;
+  padding: calc(var(--u) * 14);
+  border-radius: calc(var(--u) * 14);
+  background: #f7f6ff;
+}
+
+.cd-badge-icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--u) * 40);
+  height: calc(var(--u) * 40);
+  border-radius: calc(var(--u) * 14);
+  background: #f4f2ff;
+  font-size: calc(var(--u) * 20);
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.cd-badges li.is-earned .cd-badge-icon {
+  background: #dcd7ff;
+  filter: none;
+  opacity: 1;
+}
+
+.cd-badge-title {
+  font-size: calc(var(--u) * 13);
+  font-weight: 500;
+}
+
+.cd-badge-text {
+  margin-top: calc(var(--u) * 3) !important;
+  color: #625b78;
+  font-size: calc(var(--u) * 11);
+}
+
+.cd-badge-progress {
+  margin-top: calc(var(--u) * 6) !important;
+  color: #625b78;
+  font-size: calc(var(--u) * 11);
+  font-weight: 600;
+}
+
+.cd-badges li.is-earned .cd-badge-progress { color: #3423c7; }
+
+.cd-choices table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(var(--u) * 13);
+}
+
+.cd-choices th {
+  padding: 0 calc(var(--u) * 10) calc(var(--u) * 10);
+  color: #625b78;
+  font-size: calc(var(--u) * 10);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.cd-choices td {
+  padding: calc(var(--u) * 12) calc(var(--u) * 10);
+  border-top: 1px solid #f4f2ff;
+  vertical-align: top;
+}
+
+.cd-choices td:not(.cd-said) { white-space: nowrap; }
+
+.cd-said {
+  width: 50%;
+  color: #625b78;
+}
+
+/* ---------- Edit profile (not in the Figma) ---------- */
+.cd-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(43, 39, 43, 0.35);
+}
+
+.cd-modal-card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 18);
+  width: calc(var(--u) * 440);
+  padding: calc(var(--u) * 28);
+  border-radius: calc(var(--u) * 24);
+  background: #fff;
+}
+
+.cd-modal-card .tl-error { margin: 0; }
+
+.cd-field {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 8);
+  color: #625b78;
+  font-size: calc(var(--u) * 12);
+  font-weight: 500;
+}
+
+.cd-field select {
+  height: calc(var(--u) * 42);
+  padding: 0 calc(var(--u) * 14);
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 12);
+  background: #f7f6ff;
+  color: #2b272b;
+  font-size: calc(var(--u) * 13);
+  font-weight: 400;
+}
+
+.cd-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(var(--u) * 20);
+  padding-top: calc(var(--u) * 4);
+}
+
+.cd .cd-cancel {
+  color: #3423c7;
+  font-size: calc(var(--u) * 13);
+  font-weight: 500;
+}
+
+.cd .cd-save {
+  height: calc(var(--u) * 42);
+  padding: 0 calc(var(--u) * 20);
+  border-radius: calc(var(--u) * 24);
+  background: #ff6498;
+  font-size: calc(var(--u) * 13);
+  font-weight: 500;
+}
+
+.cd .cd-save:disabled { cursor: wait; opacity: 0.7; }

@@ -1,0 +1,287 @@
+/* Children (Figma 645:364). Pixels of the frame (--u, see TherapistLayout.css). */
+
+.tc p,
+.tc h1,
+.tc h2,
+.tc ul {
+  margin: 0;
+  padding: 0;
+}
+
+.tc ul { list-style: none; }
+
+/* ---------- Header ---------- */
+.tc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--u) * 24);
+  height: calc(var(--u) * 92);
+}
+
+.tc .tc-add {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 10);
+  height: calc(var(--u) * 46);
+  padding: 0 calc(var(--u) * 20);
+  border-radius: calc(var(--u) * 100);
+  background: #ff6498;
+  font-size: calc(var(--u) * 14);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tc-add img {
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+}
+
+/* ---------- Practice at a glance ---------- */
+.tc-glance {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 28);
+  height: calc(var(--u) * 80);
+  margin-top: calc(var(--u) * 24);
+  padding: 0 calc(var(--u) * 28);
+  border-radius: calc(var(--u) * 24);
+  background: #dcd7ff;
+}
+
+.tc-glance-divider {
+  flex: none;
+  width: 1px;
+  height: calc(var(--u) * 36);
+  background: #dcd7ff;
+}
+
+.tc-summary {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: calc(var(--u) * 16);
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.tc-summary-value {
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 24);
+  line-height: 1.15;
+}
+
+.tc-summary-title {
+  font-size: calc(var(--u) * 13);
+  font-weight: 500;
+}
+
+.tc-summary-note {
+  margin-top: calc(var(--u) * 4) !important;
+  color: #625b78;
+  font-size: calc(var(--u) * 11);
+}
+
+/* ---------- Your little explorers ---------- */
+.tc-dir {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 16);
+  margin-top: calc(var(--u) * 53);
+}
+
+.tc-controls {
+  display: flex;
+  gap: calc(var(--u) * 12);
+  height: calc(var(--u) * 44);
+  margin-bottom: calc(var(--u) * 4);
+}
+
+.tc-search {
+  position: relative;
+  flex: 1 1 0;
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 100);
+  background: #fff;
+}
+
+.tc-search img {
+  position: absolute;
+  left: calc(var(--u) * 16);
+  top: 50%;
+  width: calc(var(--u) * 17);
+  height: calc(var(--u) * 17);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.tc-search input {
+  width: 100%;
+  height: 100%;
+  padding: 0 calc(var(--u) * 16) 0 calc(var(--u) * 43);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: #2b272b;
+  font-size: calc(var(--u) * 13);
+}
+
+.tc-search input::placeholder { color: #625b78; opacity: 1; }
+.tc-search input:focus-visible { outline: 2px solid #3423c7; outline-offset: 2px; }
+
+.tc .tl-select {
+  flex: none;
+  gap: calc(var(--u) * 10);
+  padding: 0 calc(var(--u) * 16);
+  border-radius: calc(var(--u) * 100);
+  font-size: calc(var(--u) * 13);
+  white-space: nowrap;
+}
+
+.tc .tc-filter { gap: calc(var(--u) * 20); }
+
+.tc .tl-select img {
+  width: calc(var(--u) * 16);
+  height: calc(var(--u) * 16);
+}
+
+.tc-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--u) * 20);
+}
+
+/* ---------- A child ---------- */
+.tc-card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 16);
+  min-width: 0;
+  height: calc(var(--u) * 248);
+  padding: calc(var(--u) * 22);
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 24);
+  background: #fff;
+}
+
+.tc-identity {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 14);
+}
+
+.tc-avatar {
+  flex: none;
+  width: calc(var(--u) * 60);
+  height: calc(var(--u) * 60);
+  border-radius: calc(var(--u) * 28);
+  object-fit: cover;
+}
+
+.tc-identity-text {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.tc-name {
+  overflow: hidden;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 24);
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tc-age {
+  margin-top: calc(var(--u) * 3) !important;
+  color: #625b78;
+  font-size: calc(var(--u) * 12);
+  white-space: nowrap;
+}
+
+.tc-avatar.is-default {
+  padding: calc(var(--u) * 12);
+  background: #f4f2ff;
+  object-fit: contain;
+}
+
+.tc-new {
+  flex: none;
+  padding: calc(var(--u) * 5) calc(var(--u) * 9);
+  border-radius: calc(var(--u) * 100);
+  background: #f4f2ff;
+  color: #3423c7;
+  font-size: calc(var(--u) * 10);
+  font-weight: 500;
+}
+
+.tc-details {
+  display: flex;
+  gap: calc(var(--u) * 16);
+  white-space: nowrap;
+}
+
+.tc-focus { flex: 1 1 0; min-width: 0; }
+.tc-support { flex: 0 0 calc(var(--u) * 108); }
+
+.tc-label {
+  margin-bottom: calc(var(--u) * 5) !important;
+  color: #625b78;
+  font-size: calc(var(--u) * 10);
+}
+
+.tc-focus-value {
+  font-size: calc(var(--u) * 13);
+  font-weight: 500;
+}
+
+.tc-support-value { font-size: calc(var(--u) * 13); }
+
+.tc-week-text {
+  display: flex;
+  justify-content: space-between;
+  color: #625b78;
+  font-size: calc(var(--u) * 11);
+  white-space: nowrap;
+}
+
+.tc-marks {
+  display: flex;
+  gap: calc(var(--u) * 5);
+  margin-top: calc(var(--u) * 8);
+}
+
+.tc-marks span {
+  flex: 1 1 0;
+  height: calc(var(--u) * 5);
+  border-radius: calc(var(--u) * 3);
+  background: #f4f2ff;
+}
+
+.tc-marks span.is-done { background: #3423c7; }
+
+.tc-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: calc(var(--u) * 12);
+  border-top: 1px solid #cec8ea;
+  color: #625b78;
+  font-size: calc(var(--u) * 11);
+  white-space: nowrap;
+}
+
+.tc .tc-view {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 8);
+  color: #3423c7;
+  font-size: calc(var(--u) * 12);
+  font-weight: 500;
+}
+
+.tc-view img {
+  width: calc(var(--u) * 15);
+  height: calc(var(--u) * 15);
+}

@@ -8,7 +8,8 @@ To move to MySQL later, only this file (and the SQL in services/accounts.py + se
 Tables
     therapists   one row per therapist account (password stored as a secure hash, never in plain text)
     children     one row per child, linked to a therapist, with a login code like PIP742,
-                 and what the child chose in "Choose your Pip" (nickname and Pip, empty until then)
+                 and what the child chose in "Choose your Pip" (nickname and Pip, empty until then),
+                 and what the therapist set for them (support level and weekly goal, "Edit profile")
     tokens       who is logged in (a random key per login, sent by the browser with every request)
     story_runs   one row per time a child plays a story (start, end, results, XP)
     attempts     one row per picture the child clicks (which scene, which option, right or not, what Pip said)
@@ -43,6 +44,8 @@ CREATE TABLE IF NOT EXISTS children (
     code          TEXT NOT NULL UNIQUE,
     nickname      TEXT DEFAULT '',          -- what Pip calls the child ('' = their name)
     pip           TEXT DEFAULT '',          -- the chosen Pip: milo, bob, henry or thomas ('' = none yet)
+    support_level TEXT DEFAULT 'Guided',    -- set by the therapist: Guided, Supported or Independent
+    weekly_goal   INTEGER DEFAULT 3,        -- set by the therapist: practice days a week (1-7)
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS tokens (
@@ -105,7 +108,8 @@ def db():
 
 # Columns added after the first version: a database created before them gets them here (its data is kept).
 NEW_COLUMNS = {
-    "children": {"nickname": "TEXT DEFAULT ''", "pip": "TEXT DEFAULT ''"},
+    "children": {"nickname": "TEXT DEFAULT ''", "pip": "TEXT DEFAULT ''",
+                 "support_level": "TEXT DEFAULT 'Guided'", "weekly_goal": "INTEGER DEFAULT 3"},
 }
 
 

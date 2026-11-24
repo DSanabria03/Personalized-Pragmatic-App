@@ -12,6 +12,7 @@ Therapist only (send "Authorization: Bearer <token>"):
     POST /api/children              add a child -> creates their login code
     GET  /api/children/{id}         one child's statistics in detail
     POST /api/children/{id}/reset-code   new code (the old one stops working)
+    PUT  /api/children/{id}/plan         support level + weekly goal ("Edit profile")
 
 Child only:
     GET  /api/progress              XP, level, badges, this week (for the child's home and the "Great job" screen)
@@ -52,6 +53,11 @@ class ChildLogin(BaseModel):
 class ChildProfile(BaseModel):
     nickname: str
     pip: str = ""
+
+
+class ChildPlan(BaseModel):
+    support_level: str
+    weekly_goal: int
 
 
 class NewChild(BaseModel):
@@ -157,6 +163,15 @@ def reset_code(child_id: ChildId, authorization: str | None = Header(default=Non
     therapist = current_therapist(authorization)
     try:
         return accounts.reset_child_code(therapist["id"], child_id)
+    except AccountError as error:
+        _fail(error)
+
+
+@router.put("/children/{child_id}/plan")
+def update_plan(child_id: ChildId, body: ChildPlan, authorization: str | None = Header(default=None)):
+    therapist = current_therapist(authorization)
+    try:
+        return accounts.update_child_plan(therapist["id"], child_id, body.support_level, body.weekly_goal)
     except AccountError as error:
         _fail(error)
 

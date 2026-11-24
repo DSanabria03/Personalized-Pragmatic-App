@@ -1,0 +1,310 @@
+/* The therapist's pages (Overview, Children, a child's page, Activities): Figma frames of 1512 x 982.
+   --u  one frame pixel. It follows the width of the window, so the page keeps the composition of the design
+        on any computer screen, and scrolls down when there is more content (many children, recent choices...).
+        In short windows it also shrinks a little with the height, but never below 0.85px, so text stays readable.
+   The menu on the left stays in view while the page scrolls: when the window is shorter than the menu,
+   it scrolls along until its bottom (Log out) is visible, then stays there. */
+
+.tl {
+  container-type: inline-size;
+  width: 100%;
+  min-height: 100dvh;
+  background: #e8e6fe;
+  color: #2b272b;
+  font-family: 'Alexandria', sans-serif;
+  line-height: 1.35;
+}
+
+.tl > * {
+  --u: min(calc(100cqw / 1512), max(calc(100dvh / 982), 0.85px));
+}
+
+.tl button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tl :is(button, a, input, select):focus-visible {
+  outline: 2px solid #3423c7;
+  outline-offset: 2px;
+}
+
+.tl-frame {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--u) * 32);
+  min-height: 100dvh;
+  padding: calc(var(--u) * 16) calc(var(--u) * 32) calc(var(--u) * 16) calc(var(--u) * 16);
+}
+
+.tl-main {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-top: calc(var(--u) * 16);
+  padding-bottom: calc(var(--u) * 16);
+}
+
+/* ---------- Menu (Figma "Practice navigation") ---------- */
+.tl-side {
+  position: sticky;
+  top: min(calc(var(--u) * 16), calc(100dvh - var(--u) * 966));
+  flex: 0 0 calc(var(--u) * 180);
+  height: calc(var(--u) * 950);
+  border-radius: calc(var(--u) * 28);
+  background: #fff;
+}
+
+.tl-side > * {
+  position: absolute;
+  margin: 0;
+}
+
+.tl-side img {
+  display: block;
+  max-width: none;
+}
+
+.tl-logo {
+  left: calc(var(--u) * 31);
+  top: calc(var(--u) * -11);
+  width: calc(var(--u) * 113.866);
+  height: calc(var(--u) * 161);
+  pointer-events: none;
+}
+
+.tl-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tl-section {
+  left: calc(var(--u) * 24);
+  width: calc(var(--u) * 140);
+  font-size: calc(var(--u) * 10);
+  font-weight: 600;
+}
+
+.tl-section-workspace { top: calc(var(--u) * 140); }
+.tl-section-practice { top: calc(var(--u) * 454); }
+
+.tl-nav {
+  left: calc(var(--u) * 12);
+  top: 0;
+  width: calc(var(--u) * 156);
+}
+
+.tl .tl-link {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: calc(var(--u) * 46);
+  padding: calc(var(--u) * 13) 0 0 calc(var(--u) * 47);
+  border-radius: calc(var(--u) * 13);
+  font-size: calc(var(--u) * 14);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.tl-link img {
+  position: absolute;
+  left: calc(var(--u) * 14);
+  top: calc(var(--u) * 13);
+  width: calc(var(--u) * 20);
+  height: calc(var(--u) * 20);
+}
+
+.tl-link-dashboard { top: calc(var(--u) * 173); }
+.tl-link-children { top: calc(var(--u) * 224); }
+.tl-link-child { top: calc(var(--u) * 278); }
+.tl-link-activities { top: calc(var(--u) * 332); }
+
+.tl .tl-link:hover { background: #f4f2ff; }
+
+.tl .tl-link[aria-current='page'] {
+  background: #3423c7;
+  color: #fff;
+  font-weight: 600;
+}
+
+.tl .tl-plain {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--u) * 13);
+  font-size: calc(var(--u) * 14);
+  white-space: nowrap;
+}
+
+.tl-plain img {
+  width: calc(var(--u) * 20);
+  height: calc(var(--u) * 20);
+}
+
+.tl-settings { left: calc(var(--u) * 26); top: calc(var(--u) * 495); }
+.tl-help { left: calc(var(--u) * 26); top: calc(var(--u) * 547); }
+
+.tl .tl-logout {
+  left: calc(var(--u) * 25);
+  top: calc(var(--u) * 899);
+  gap: calc(var(--u) * 14);
+  font-size: calc(var(--u) * 13);
+}
+
+.tl-logout img {
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+}
+
+.tl-reminder {
+  left: calc(var(--u) * 16);
+  top: calc(var(--u) * 646);
+  width: calc(var(--u) * 148);
+  height: calc(var(--u) * 124);
+  overflow: hidden;
+  border-radius: calc(var(--u) * 20);
+  background: #ff6498;
+}
+
+.tl-reminder p {
+  position: absolute;
+  left: calc(var(--u) * 14);
+  width: calc(var(--u) * 120);
+  margin: 0;
+}
+
+.tl-reminder-title {
+  top: calc(var(--u) * 14);
+  color: #fff;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 15);
+  line-height: 1.15;
+}
+
+.tl-reminder-text {
+  top: calc(var(--u) * 78);
+  font-size: calc(var(--u) * 11);
+}
+
+.tl-divider {
+  left: calc(var(--u) * 24);
+  top: calc(var(--u) * 805);
+  width: calc(var(--u) * 132);
+  height: 1px;
+  background: #625b78;
+}
+
+.tl-name,
+.tl-practice {
+  left: calc(var(--u) * 24);
+  width: calc(var(--u) * 140);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tl-name {
+  top: calc(var(--u) * 828);
+  font-size: calc(var(--u) * 13);
+  font-weight: 500;
+}
+
+.tl-practice {
+  top: calc(var(--u) * 853);
+  font-size: calc(var(--u) * 11);
+}
+
+/* ---------- Shared by the pages ---------- */
+
+/* Page title block: "YOUR PRACTICE / Children / ..." */
+.tl-eyebrow {
+  margin: 0;
+  color: #625b78;
+  font-size: calc(var(--u) * 11);
+  font-weight: 600;
+}
+
+.tl-title {
+  margin: calc(var(--u) * 4) 0;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 29);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.tl-subtitle {
+  margin: 0;
+  color: #625b78;
+  font-size: calc(var(--u) * 15);
+}
+
+.tl-heading {
+  margin: 0;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 24);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+/* A dropdown: a native <select> with the icons of the design drawn over it. */
+.tl-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid #cec8ea;
+  background: #fff;
+}
+
+.tl-select select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: transparent;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+
+.tl-select select option { color: #2b272b; }
+
+.tl-select > span,
+.tl-select > img {
+  position: relative;
+  pointer-events: none;
+}
+
+.tl-select img {
+  flex: none;
+  display: block;
+}
+
+/* Not in the design: a problem talking to the backend. */
+.tl-error {
+  margin: 0 0 calc(var(--u) * 16);
+  padding: calc(var(--u) * 10) calc(var(--u) * 16);
+  border-radius: calc(var(--u) * 14);
+  background: #ffe8ef;
+  color: #a3123f;
+  font-size: calc(var(--u) * 14);
+}
+
+/* Not in the design: what a list shows when it is empty, and while it loads. */
+.tl-empty {
+  margin: 0;
+  padding: calc(var(--u) * 16) calc(var(--u) * 22);
+  border-radius: calc(var(--u) * 12);
+  background: #fff;
+  color: #625b78;
+  font-size: calc(var(--u) * 13);
+}
+
+.tl .tl-empty button {
+  color: #3423c7;
+  font-weight: 500;
+}

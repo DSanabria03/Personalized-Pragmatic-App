@@ -10,6 +10,9 @@ import Home from './components/Home';
 import Settings from './components/Settings';
 import StoryDone from './components/StoryDone';
 import StoryPlay from './components/StoryPlay';
+import TherapistActivities from './components/TherapistActivities';
+import TherapistChild from './components/TherapistChild';
+import TherapistChildren from './components/TherapistChildren';
 import TherapistDashboard from './components/TherapistDashboard';
 import TherapistLogin from './components/Login';
 import TherapistRegister from './components/TherapistRegister';
@@ -26,15 +29,23 @@ const ACTIONS = {
   go_story: 'story',
   go_settings: 'settings',
   go_dashboard: 'dashboard',
+  go_children: 'children',
+  go_analytics: 'child',
+  go_activities: 'activities',
   go_child_home: 'child-home',
   go_child_setup: 'child-setup',
 };
 
 // Screens that need someone to be logged in.
-const NEEDS = { dashboard: 'therapist', 'add-child': 'therapist', 'child-code': 'therapist', 'child-home': 'child', 'child-setup': 'child' };
+const NEEDS = {
+  dashboard: 'therapist', children: 'therapist', child: 'therapist', activities: 'therapist', 'add-child': 'therapist', 'child-code': 'therapist', 'child-home': 'child', 'child-setup': 'child',
+};
 
 // Redesigned screens: their design has no footer. The other screens keep it until they are redesigned.
-const NO_FOOTER = ['home', 'login', 'register', 'add-child', 'child-code', 'child-login', 'child-setup'];
+const NO_FOOTER = [
+  'home', 'login', 'register', 'add-child', 'child-code', 'child-login', 'child-setup',
+  'dashboard', 'children', 'child', 'activities',
+];
 
 function startScreen(session) {
   if (session && session.role === 'child') return 'child-home';
@@ -49,11 +60,13 @@ export default function App() {
   const [previous, setPrevious] = useState('home'); // where "Back" in Settings goes
   const [newChild, setNewChild] = useState(null); // the child just added (for the code screen)
   const [lastResult, setLastResult] = useState(null); // results of the story just played
-  const [dashboardChild, setDashboardChild] = useState(null); // the child the dashboard opens with (none = the first one)
+  const [dashboardChild, setDashboardChild] = useState(null); // the child the therapist's child page shows (none = the first one)
+  const [storyBack, setStoryBack] = useState(null); // where the story goes back to (the therapist's "Preview exercise")
   const [storyKey, setStoryKey] = useState(0); // new number = start the story fresh ("Play again")
 
+  // childId: the child to show on the therapist's child page ("Analytics" shows the last one seen).
   const go = (target, childId = null) => {
-    setDashboardChild(childId);
+    if (childId !== null) setDashboardChild(childId);
     if (target === 'settings' && screen !== 'settings') setPrevious(screen);
     setScreen(target);
     window.scrollTo(0, 0);
@@ -63,6 +76,7 @@ export default function App() {
     api('/api/logout', { method: 'POST' }).catch(() => {});
     saveSession(null);
     setSession(null);
+    setDashboardChild(null);
     setScreen('home');
   }, []);
 
@@ -99,7 +113,7 @@ export default function App() {
     if (target === 'login' && session && session.role === 'therapist') target = 'dashboard';
     if (target === 'child-login' && session && session.role === 'child') target = 'child-home';
     if (target === 'home' && session) target = startScreen(session);
-    if (target === 'story') setStoryKey((k) => k + 1);
+    if (target === 'story') { setStoryKey((k) => k + 1); setStoryBack(null); }
     go(target);
   };
 
@@ -122,6 +136,10 @@ export default function App() {
   if (NEEDS[screen] && (!session || session.role !== NEEDS[screen])) shown = NEEDS[screen] === 'child' ? 'child-login' : 'login';
 
   const childOrHome = session && session.role === 'child' ? 'child-home' : 'home';
+  const afterStory = storyBack || childOrHome;
+
+  // What the therapist's pages share.
+  const therapistPage = { session, onNavigate, onLogout: logout, onOpenChild: (id) => go('child', id) };
 
   return (
     <div className="app-container">
@@ -134,7 +152,7 @@ export default function App() {
           onCreated={(child) => { setNewChild(child); go('child-code'); }} />
       )}
       {shown === 'child-code' && (
-        <ChildCode onNavigate={onNavigate} child={newChild} onOpenProfile={() => go('dashboard', newChild?.id)} />
+        <ChildCode onNavigate={onNavigate} child={newChild} onOpenProfile={() => go('child', newChild?.id ?? null)} />
       )}
       {shown === 'child-login' && <ChildLogin onNavigate={onNavigate} onLogin={(d) => login(d)} />}
       {shown === 'child-setup' && (
@@ -146,8 +164,12 @@ export default function App() {
         />
       )}
       {shown === 'child-home' && <ChildHome session={session} settings={settings} onNavigate={onNavigate} onLogout={logout} />}
-      {shown === 'dashboard' && (
-        <TherapistDashboard session={session} initialChildId={dashboardChild} onNavigate={onNavigate} onLogout={logout} />
+      {shown === 'dashboard' && <TherapistDashboard {...therapistPage} />}
+      {shown === 'children' && <TherapistChildren {...therapistPage} />}
+      {shown === 'child' && <TherapistChild {...therapistPage} childId={dashboardChild} />}
+      {shown === 'activities' && (
+        <TherapistActivities {...therapistPage}
+          onPreview={() => { setStoryKey((k) => k + 1); setStoryBack('activities'); go('story'); }} />
       )}
       {shown === 'settings' && (
         <Settings settings={settings} onChange={updateSettings} onBack={() => go(previous)} session={session} onLogout={logout} />
@@ -162,13 +184,13 @@ export default function App() {
           therapistPause={settings.grownUpPause}
           pipName="Pip"
           pipIdle={getPip(session && session.pip)?.img}
-          onExit={() => go(childOrHome)}
+          onExit={() => go(afterStory)}
           onFinished={(result) => { setLastResult(result); go('story-done'); }}
         />
       )}
       {shown === 'story-done' && (
         <StoryDone result={lastResult} language={settings.language}
-          onHome={() => go(childOrHome)}
+          onHome={() => go(afterStory)}
           onPlayAgain={() => { setStoryKey((k) => k + 1); go('story'); }} />
       )}
 

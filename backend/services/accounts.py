@@ -58,6 +58,7 @@ def _therapist_public(row) -> dict:
 def _child_public(row) -> dict:
     return {"id": row["id"], "name": row["name"], "age": row["age"], "code": row["code"],
             "nickname": row["nickname"] or "", "pip": row["pip"] or "",
+            "support_level": row["support_level"] or "Guided", "weekly_goal": row["weekly_goal"] or 3,
             "therapist_id": row["therapist_id"], "created_at": row["created_at"]}
 
 
@@ -158,6 +159,23 @@ def update_child_profile(child_id: int, nickname: str, pip: str = ""):
         raise AccountError("This Pip doesn't exist.")
     with db() as con:
         con.execute("UPDATE children SET nickname = ?, pip = ? WHERE id = ?", (nickname, pip, child_id))
+        return _child_public(con.execute("SELECT * FROM children WHERE id = ?", (child_id,)).fetchone())
+
+
+# What the therapist sets for each child in "Edit profile" (the child's page of the dashboard).
+SUPPORT_LEVELS = ("Guided", "Supported", "Independent")
+
+
+def update_child_plan(therapist_id: int, child_id: int, support_level: str, weekly_goal: int):
+    """Support level and weekly goal (practice days a week) of one of the therapist's children."""
+    if support_level not in SUPPORT_LEVELS:
+        raise AccountError(f"The support level must be one of: {', '.join(SUPPORT_LEVELS)}.")
+    if not isinstance(weekly_goal, int) or not 1 <= weekly_goal <= 7:
+        raise AccountError("The weekly goal must be between 1 and 7 days.")
+    with db() as con:
+        _own_child(con, therapist_id, child_id)
+        con.execute("UPDATE children SET support_level = ?, weekly_goal = ? WHERE id = ?",
+                    (support_level, weekly_goal, child_id))
         return _child_public(con.execute("SELECT * FROM children WHERE id = ?", (child_id,)).fetchone())
 
 

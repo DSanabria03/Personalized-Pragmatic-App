@@ -1,6 +1,8 @@
 """
 Story API: the frontend calls these while the child plays a story.
 
+    GET  /api/stories?language=en                    therapist only: every story with its exercises (scenes)
+                                                     and their hidden meaning (the "Activities" page)
     GET  /api/stories/{story_id}?language=en         story + scenes, WITHOUT the correct answers
     POST /api/stories/{story_id}/narrate             Pip tells what happens in a scene
     POST /api/stories/{story_id}/check               child picked an option -> right or not, Pip's action, the
@@ -155,6 +157,27 @@ class FinishRequest(BaseModel):
 
 
 # ---------- endpoints ----------
+@router.get("")
+def list_stories(language: str = "en", authorization: str | None = Header(default=None)):
+    """For the therapist's "Activities" page: what each exercise shows and the meaning the child should find."""
+    user = accounts.user_from_token(authorization)
+    if not user:
+        raise HTTPException(401, "Please log in again.")
+    if user["role"] != "therapist":
+        raise HTTPException(403, "Only for therapists.")
+    lang = check_language(language)
+    stories = []
+    for path in sorted(STORIES_DIR.glob("*.json")):
+        story = load_story(path.stem)
+        exercises = []
+        for raw in story["scenes"]:
+            s = localized_scene(raw, lang)
+            exercises.append({k: s[k] for k in ("id", "speaker", "situation", "quote", "question", "hidden_meaning")})
+        stories.append({"id": story["id"], "category": story.get("category"), "title": pick(story["title"], lang),
+                        "setting": pick(story["setting"], lang), "exercises": exercises})
+    return {"stories": stories}
+
+
 @router.get("/{story_id}")
 def get_story(story_id: str, language: str = "en"):
     lang = check_language(language)

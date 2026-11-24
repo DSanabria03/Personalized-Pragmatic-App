@@ -8,9 +8,12 @@ For the therapist:
     activities, practice days and time, how often the hidden meaning was found on the first try, per scene.
 """
 
+import json
 from datetime import date, datetime, timedelta, timezone
 
-from database import db
+from database import DATA_DIR, db
+
+STORIES_DIR = DATA_DIR / "stories"
 
 XP_FIRST_TRY = 15
 XP_SECOND_TRY = 10
@@ -180,9 +183,27 @@ def child_progress(child_id: int, language: str = "en") -> dict:
 
 
 # ---------------------------------------------------------------- the therapist's dashboard
-def therapist_overview(therapist_id: int) -> dict:
+def _monday() -> date:
     today = datetime.now(timezone.utc).date()
-    monday = (today - timedelta(days=today.weekday())).isoformat()
+    return today - timedelta(days=today.weekday())
+
+
+def _plan(c) -> dict:
+    """What the therapist set for the child (Edit profile) and the child's chosen Pip (for the avatar)."""
+    return {"pip": c["pip"] or "", "support_level": c["support_level"] or "Guided", "weekly_goal": c["weekly_goal"] or 3}
+
+
+def _story_scenes() -> dict[str, dict]:
+    """story id -> {"category", "scenes": [scene ids]} of every story in data/stories."""
+    stories = {}
+    for path in sorted(STORIES_DIR.glob("*.json")):
+        story = json.loads(path.read_text(encoding="utf-8"))
+        stories[story["id"]] = {"category": story.get("category", ""), "scenes": [s["id"] for s in story["scenes"]]}
+    return stories
+
+
+def therapist_overview(therapist_id: int) -> dict:
+    monday = _monday().isoformat()
     with db() as con:
         children = con.execute("SELECT * FROM children WHERE therapist_id = ? ORDER BY id", (therapist_id,)).fetchall()
         history = {c["id"]: (_finished_runs(con, c["id"]), _attempts_of(con, c["id"])) for c in children}
@@ -202,8 +223,9 @@ def therapist_overview(therapist_id: int) -> dict:
         total = sum(r["scenes_total"] for r in runs)
         last = max((a["created_at"] for a in attempts), default=None)
         rows.append({
-            "id": c["id"], "name": c["name"], "age": c["age"], "code": c["code"],
+            "id": c["id"], "name": c["name"], "age": c["age"], "code": c["code"], **_plan(c),
             "stories_completed": m["stories_completed"], "activities_week": len(runs_week),
+            "practice_days_week": sum(1 for d in m["days"] if d >= monday),
             "secret_messages": m["secret_messages"],
             "first_try_rate": round(100 * first / total) if total else None,
             "level": m["xp"] // XP_PER_LEVEL + 1,
@@ -211,6 +233,7 @@ def therapist_overview(therapist_id: int) -> dict:
             "last_active": last,
         })
     return {
+        "week_start": monday,                   # this week (Monday), the one all the "this week" numbers are about
         "children_registered": len(children),
         "children_active_week": len(active_ids),
         "activities_week": week_runs,
@@ -225,8 +248,27 @@ def child_detail(therapist_id: int, child_id: int) -> dict | None:
         child = con.execute("SELECT * FROM children WHERE id = ? AND therapist_id = ?", (child_id, therapist_id)).fetchone()
         if not child:
             return None
-        runs = sorted(_finished_runs(con, child_id), key=lambda r: r["id"], reverse=True)[:20]
+        all_runs = _finished_runs(con, child_id)
         attempts = _attempts_of(con, child_id)
+    runs = sorted(all_runs, key=lambda r: r["id"], reverse=True)[:20]
+
+    monday = _monday().isoformat()
+    runs_week = [r for r in all_runs if r["finished_at"] >= monday]
+    week = {
+        "start": monday,
+        "activities": len(runs_week),
+        "practice_minutes": round(sum(_run_minutes(r) for r in runs_week)),
+        "practice_days": len({a["created_at"][:10] for a in attempts if a["created_at"][:10] >= monday}),
+    }
+
+    # Per category (e.g. hidden_requests): how many of its scenes the child has finished at least once
+    # (found the hidden meaning, or Pip explained it).
+    done = {(a["story_id"], a["scene_id"]) for a in attempts if a["is_correct"] or a["outcome"] == "reveal"}
+    categories: dict[str, dict] = {}
+    for story_id, story in _story_scenes().items():
+        cat = categories.setdefault(story["category"], {"category": story["category"], "done": 0, "total": 0})
+        cat["total"] += len(story["scenes"])
+        cat["done"] += sum(1 for scene in story["scenes"] if (story_id, scene) in done)
 
     scenes: dict[str, dict] = {}
     for a in attempts:
@@ -240,8 +282,11 @@ def child_detail(therapist_id: int, child_id: int) -> dict | None:
     recent_fields = ("scene_id", "choice", "is_correct", "attempt_number", "outcome", "pip_said", "language", "created_at")
     return {
         "child": {"id": child["id"], "name": child["name"], "age": child["age"], "code": child["code"],
-                  "created_at": child["created_at"]},
+                  "created_at": child["created_at"], **_plan(child)},
         "progress": child_progress(child_id),
+        "week": week,
+        "last_active": max((a["created_at"] for a in attempts), default=None),
+        "categories": list(categories.values()),
         "runs": [{"story_id": r["story_id"], "language": r["language"], "finished_at": r["finished_at"],
                   "tables": r["scenes_total"], "first_try": r["scenes_first_try"], "solved": r["scenes_solved"],
                   "attempts": r["total_attempts"], "xp": r["xp_earned"]} for r in runs],

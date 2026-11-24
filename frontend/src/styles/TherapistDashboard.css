@@ -1,0 +1,427 @@
+/* Overview (Figma 645:75). Pixels of the frame (--u, see TherapistLayout.css); the content column is 1252 wide. */
+
+.ov p,
+.ov h1,
+.ov h2,
+.ov ul {
+  margin: 0;
+  padding: 0;
+}
+
+.ov ul { list-style: none; }
+
+/* ---------- Header ---------- */
+.ov-header {
+  position: relative;
+  height: calc(var(--u) * 100);
+  margin-bottom: calc(var(--u) * 16);
+}
+
+.ov-title {
+  position: absolute;
+  top: calc(var(--u) * 20);
+  left: 0;
+  right: calc(var(--u) * 300);
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 29);
+  font-weight: 400;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ov-subtitle {
+  position: absolute;
+  top: calc(var(--u) * 76);
+  color: #625b78;
+  font-size: calc(var(--u) * 15);
+}
+
+.ov-range {
+  position: absolute;
+  top: calc(var(--u) * 26);
+  right: 0;
+  width: calc(var(--u) * 278);
+  height: calc(var(--u) * 46);
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 23);
+  background: #fff;
+  font-size: calc(var(--u) * 14);
+  font-weight: 500;
+}
+
+.ov-range span {
+  position: absolute;
+  left: calc(var(--u) * 17);
+  top: calc(var(--u) * 12);
+}
+
+.ov-range img {
+  position: absolute;
+  left: calc(var(--u) * 241);
+  top: calc(var(--u) * 13);
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+}
+
+/* ---------- Practice at a glance ---------- */
+.ov-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--u) * 26);
+  margin-bottom: calc(var(--u) * 24);
+}
+
+.ov-stat {
+  position: relative;
+  height: calc(var(--u) * 150);
+  border-radius: calc(var(--u) * 24);
+  background: #fff;
+}
+
+.ov-stat > * { position: absolute; }
+
+.ov-stat-title {
+  left: calc(var(--u) * 20);
+  top: calc(var(--u) * 18);
+  font-size: calc(var(--u) * 14);
+  font-weight: 500;
+}
+
+.ov-stat-icon {
+  right: calc(var(--u) * 24);
+  top: calc(var(--u) * 19);
+  width: calc(var(--u) * 21);
+  height: calc(var(--u) * 21);
+}
+
+.ov-stat-value {
+  left: calc(var(--u) * 20);
+  top: calc(var(--u) * 43);
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 34);
+  line-height: 1.15;
+}
+
+.ov-stat-note {
+  left: calc(var(--u) * 20);
+  top: calc(var(--u) * 117);
+  font-size: calc(var(--u) * 12);
+}
+
+/* ---------- Little moments of practice ---------- */
+.ov-trends {
+  position: relative;
+  height: calc(var(--u) * 214);
+  margin-bottom: calc(var(--u) * 24);
+  border-radius: calc(var(--u) * 24);
+  background: #dcd7ff;
+}
+
+.ov-trends > * { position: absolute; }
+
+.ov-trends-title {
+  left: calc(var(--u) * 24);
+  top: calc(var(--u) * 18);
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 20);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.ov-trends-sub {
+  left: calc(var(--u) * 24);
+  top: calc(var(--u) * 58);
+  color: #625b78;
+  font-size: calc(var(--u) * 12);
+}
+
+.ov-trends-total {
+  right: calc(var(--u) * 24);
+  top: calc(var(--u) * 22);
+  width: calc(var(--u) * 127);
+  color: #3423c7;
+  font-size: calc(var(--u) * 15);
+  font-weight: 600;
+}
+
+.ov-bars {
+  left: calc(var(--u) * 50);
+  right: calc(var(--u) * 50);
+  top: calc(var(--u) * 94);
+  display: flex;
+  justify-content: space-between;
+}
+
+.ov-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: calc(var(--u) * 120);
+}
+
+.ov-bar-track {
+  position: relative;
+  width: 100%;
+  height: calc(var(--u) * 72);
+  border-radius: calc(var(--u) * 8);
+  background: #fff;
+}
+
+.ov-bar-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  border-radius: calc(var(--u) * 8);
+  background: #3423c7;
+}
+
+.ov-bar-fill span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--u) * 4);
+  color: #fff;
+  font-size: calc(var(--u) * 11);
+  font-weight: 600;
+  text-align: center;
+}
+
+.ov-bar-day {
+  margin-top: calc(var(--u) * 14);
+  color: #625b78;
+  font-size: calc(var(--u) * 12);
+}
+
+/* ---------- Your little explorers ---------- */
+.ov-dir-head {
+  position: relative;
+  height: calc(var(--u) * 28);
+}
+
+.ov .ov-manage {
+  position: absolute;
+  right: 0;
+  top: calc(var(--u) * 8);
+  width: calc(var(--u) * 168);
+  color: #3423c7;
+  font-size: calc(var(--u) * 13);
+  font-weight: 500;
+}
+
+.ov-controls {
+  display: flex;
+  gap: calc(var(--u) * 12);
+  margin-top: calc(var(--u) * 24);
+  height: calc(var(--u) * 40);
+}
+
+.ov-search {
+  position: relative;
+  flex: 1 1 0;
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 14);
+  background: #fff;
+}
+
+.ov-search img {
+  position: absolute;
+  left: calc(var(--u) * 13);
+  top: calc(var(--u) * 10);
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+  pointer-events: none;
+}
+
+.ov-search input {
+  width: 100%;
+  height: 100%;
+  padding: 0 calc(var(--u) * 14) 0 calc(var(--u) * 43);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: #2b272b;
+  font-size: calc(var(--u) * 14);
+}
+
+.ov-search input::placeholder { color: #625b78; opacity: 1; }
+.ov-search input:focus-visible { outline: 2px solid #3423c7; outline-offset: 2px; }
+
+.ov .tl-select {
+  justify-content: space-between;
+  padding: 0 calc(var(--u) * 14);
+  border-radius: calc(var(--u) * 14);
+  font-size: calc(var(--u) * 14);
+}
+
+.ov .tl-select img {
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+}
+
+.ov-filter { flex: 0 0 calc(var(--u) * 164); }
+.ov-sort { flex: 0 0 calc(var(--u) * 224); }
+.ov-filter img { margin-right: calc(var(--u) * 1); }
+.ov-sort img { margin-right: calc(var(--u) * 1); }
+
+.ov-columns {
+  position: relative;
+  height: calc(var(--u) * 25);
+  margin-top: calc(var(--u) * 20);
+  color: #625b78;
+  font-size: calc(var(--u) * 10);
+  font-weight: 600;
+}
+
+.ov-columns span { position: absolute; top: 0; }
+.ov-col-child { left: calc(var(--u) * 22); }
+.ov-col-focus { left: calc(var(--u) * 350); }
+.ov-col-week { left: calc(var(--u) * 640); }
+.ov-col-last { left: calc(var(--u) * 850); }
+
+.ov-rows {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 4);
+}
+
+/* A child. The highlighted row of the design (Dan) is the row under the mouse or the keyboard. */
+.ov .ov-row {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: calc(var(--u) * 47);
+  border: 1px solid transparent;
+  border-radius: calc(var(--u) * 12);
+  background: #fff;
+}
+
+.ov-row > * {
+  position: absolute;
+  white-space: nowrap;
+}
+
+.ov-row-mark {
+  display: none;
+  left: -1px;
+  top: calc(var(--u) * 8);
+  width: calc(var(--u) * 3);
+  height: calc(var(--u) * 29);
+  border-radius: calc(var(--u) * 2);
+  background: #3423c7;
+}
+
+.ov-row-name {
+  left: calc(var(--u) * 21);
+  top: calc(var(--u) * 5);
+  max-width: calc(var(--u) * 300);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: calc(var(--u) * 14);
+  font-weight: 600;
+}
+
+.ov-row-meta {
+  left: calc(var(--u) * 21);
+  top: calc(var(--u) * 25);
+  color: #625b78;
+  font-size: calc(var(--u) * 10);
+}
+
+.ov-row-focus {
+  left: calc(var(--u) * 349);
+  top: calc(var(--u) * 9);
+  width: calc(var(--u) * 158);
+  height: calc(var(--u) * 28);
+  padding: calc(var(--u) * 7) calc(var(--u) * 10) 0;
+  border-radius: calc(var(--u) * 14);
+  background: #f4f2ff;
+  color: #777;
+  font-size: calc(var(--u) * 11);
+}
+
+.ov-row-week {
+  left: calc(var(--u) * 639);
+  top: calc(var(--u) * 14);
+  font-size: calc(var(--u) * 13);
+}
+
+.ov-row-last {
+  left: calc(var(--u) * 849);
+  top: calc(var(--u) * 14);
+  color: #625b78;
+  font-size: calc(var(--u) * 13);
+}
+
+.ov-row-view {
+  right: calc(var(--u) * 47);
+  top: calc(var(--u) * 14);
+  width: calc(var(--u) * 100);
+  color: #3423c7;
+  font-size: calc(var(--u) * 12);
+  font-weight: 500;
+}
+
+.ov-row-arrow {
+  right: calc(var(--u) * 17);
+  top: calc(var(--u) * 13);
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+}
+
+.ov .ov-row:is(:hover, :focus-visible) {
+  border-color: #cec8ea;
+  background: #dcd7ff;
+}
+
+.ov .ov-row:focus-visible { outline-offset: 0; }
+.ov-row:is(:hover, :focus-visible) .ov-row-mark { display: block; }
+
+.ov-row:is(:hover, :focus-visible) .ov-row-focus {
+  background: #3423c7;
+  color: #fff;
+}
+
+/* ---------- Pages ---------- */
+.ov-foot {
+  position: relative;
+  height: calc(var(--u) * 18);
+  margin-top: calc(var(--u) * 14);
+  color: #625b78;
+  font-size: calc(var(--u) * 12);
+}
+
+.ov-pages {
+  position: absolute;
+  right: calc(var(--u) * 4);
+  top: calc(var(--u) * -1);
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--u) * 12);
+}
+
+.ov .ov-pages button {
+  width: calc(var(--u) * 30);
+  color: #625b78;
+  font-size: calc(var(--u) * 13);
+}
+
+.ov .ov-pages button[aria-current='page'] {
+  color: #3423c7;
+  font-weight: 600;
+}
+
+.ov .ov-pages .ov-next {
+  width: calc(var(--u) * 18);
+  margin-left: calc(var(--u) * 2);
+}
+
+.ov-pages .ov-next:disabled { cursor: default; opacity: 0.4; }
+
+.ov-next img {
+  display: block;
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+}
