@@ -1,5 +1,9 @@
 import { useRef, useState } from 'react';
 import { api } from '../api';
+import AuthLayout from './AuthLayout';
+import DiscoveryArt from './DiscoveryArt';
+import '../styles/ChildLogin.css';
+
 const CODE_LENGTH = 6;
 
 export default function ChildLogin({ onNavigate, onLogin }) {
@@ -64,74 +68,48 @@ export default function ChildLogin({ onNavigate, onLogin }) {
   };
 
   return (
-    <>
-      <header className="register-header">
-        <div className="register-header-left">
-          <button type="button" className="register-logo" onClick={() => onNavigate('go_home')}>••</button>
-          <span style={{ fontWeight: 'bold', borderBottom: '2px solid #101914', paddingBottom: '8px' }}>Log-in</span>
+    <AuthLayout name="child-login" art={<DiscoveryArt />} onNavigate={onNavigate}>
+      <p className="auth-eyebrow">Your next little discovery</p>
+      <p className="auth-subtitle">Type the code your therapist gave you.</p>
+
+      {error && <p className="auth-error" role="alert">{error}</p>}
+
+      <form onSubmit={handleSubmit}>
+        <span className="child-login-label" id="child-login-label">Your login code</span>
+        <div className="child-login-boxes" role="group" aria-labelledby="child-login-label">
+          {characters.map((character, index) => (
+            <input
+              key={index}
+              className="child-login-box"
+              style={{ '--i': index }}
+              ref={(element) => { inputRefs.current[index] = element; }}
+              aria-label={`Code character ${index + 1}`}
+              aria-describedby="child-login-example"
+              autoComplete={index === 0 ? 'one-time-code' : 'off'}
+              autoCapitalize="characters"
+              inputMode="text"
+              maxLength={1}
+              value={character}
+              onChange={(event) => handleCharacterChange(index, event.target.value)}
+              onKeyDown={(event) => handleKeyDown(index, event)}
+              onPaste={(event) => handlePaste(index, event)}
+              required
+            />
+          ))}
         </div>
-        <nav className="register-nav">
-          <button type="button" onClick={() => onNavigate('go_settings')}>Settings</button>
-        </nav>
-      </header>
+        <p id="child-login-example" className="child-login-example">An example code looks like PIP742.</p>
 
-      <main className="register-main">
-        <aside className="register-art child-login-art">
-          <div>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1.5px', color: '#666', textTransform: 'uppercase' }}>HELLO, EXPLORER</span>
-            <h1 style={{ fontSize: 'clamp(32px, 3.5vw, 56px)', marginTop: '8px' }}>Big discoveries<br />start small.</h1>
-            <p style={{ marginTop: '16px', fontSize: '18px', color: '#4b5563' }}>Your Pip is waiting for you.<br />Let’s see what you’ll discover today.</p>
-          </div>
-          <div className="child-art-container">
-            <img src="/resources/child-characters.png" alt="Child Login Characters" className="child-art-img" />
-          </div>
-          <p style={{ fontSize: '13px', color: '#555', position: 'relative', zIndex: 2 }}>A familiar face behind every adventure.</p>
-        </aside>
+        <button type="submit" className="auth-submit child-login-submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Checking code…' : 'Let’s go!'}
+        </button>
+      </form>
 
-        <section className="register-content">
-          <p className="register-step">YOUR NEXT LITTLE DISCOVERY</p>
-          <h2>Hello, explorer!</h2>
-          <p className="register-description">Type the code your therapist gave you.</p>
-          {error && <p className="form-error" role="alert">{error}</p>}
-
-          <form className="register-form" onSubmit={handleSubmit}>
-            <div>
-              <span className="child-code-label" id="child-code-label">Your login code</span>
-              <div className="child-code-inputs" role="group" aria-labelledby="child-code-label">
-                {characters.map((character, index) => (
-                  <input
-                    key={index}
-                    className="code-box"
-                    ref={(element) => { inputRefs.current[index] = element; }}
-                    aria-label={`Code character ${index + 1}`}
-                    aria-describedby="child-code-example"
-                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
-                    autoCapitalize="characters"
-                    inputMode="text"
-                    maxLength={1}
-                    value={character}
-                    onChange={(event) => handleCharacterChange(index, event.target.value)}
-                    onKeyDown={(event) => handleKeyDown(index, event)}
-                    onPaste={(event) => handlePaste(index, event)}
-                    required
-                  />
-                ))}
-              </div>
-              <small id="child-code-example" style={{ display: 'block', marginTop: '10px', color: '#666' }}>
-                An example code looks like PIP001.
-              </small>
-            </div>
-            <button type="submit" className="register-submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Checking code…' : 'Let’s go!'}
-            </button>
-          </form>
-
-          <div style={{ background: '#eaf2ff', padding: '20px', borderRadius: '16px', marginTop: '24px' }}>
-            <strong style={{ fontSize: '14px', color: '#111' }}>Don’t have a code yet?</strong>
-            <p style={{ fontSize: '13px', color: '#555', marginTop: '4px' }}>Ask your therapist or your grown-up for help. They’ll make sure your account is ready.</p>
-          </div>
-        </section>
-      </main>
-    </>
+      <div className="child-login-help">
+        <p className="child-login-help-title">Don’t have a code yet?</p>
+        <p className="child-login-help-text">
+          Ask your therapist or your grown-up for help.<br />They’ll make sure your account is ready.
+        </p>
+      </div>
+    </AuthLayout>
   );
 }

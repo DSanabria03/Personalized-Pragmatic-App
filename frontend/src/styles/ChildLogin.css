@@ -1,0 +1,90 @@
+/* Child log-in: only its own part. The layout and the common form styles are in AuthLayout.css.
+   --t  text can get up to 1.3 times bigger than the rest on small laptops (the help card is full at 1.3).
+   The letters inside the code boxes use --u, like the code on the child code page. */
+
+.child-login > * {
+  --t: max(var(--u), min(0.85px, calc(var(--u) * 1.3)));
+}
+
+.child-login .child-login-label {
+  left: 0;
+  top: calc(var(--u) * 193);
+  font-size: calc(var(--t) * 18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ---------- The six boxes ---------- */
+.child-login .child-login-boxes {
+  left: 0;
+  top: calc(var(--u) * 239);
+  width: 100%;
+  height: calc(var(--u) * 100);
+}
+
+.child-login-box {
+  position: absolute;
+  left: calc(var(--u) * 107 * var(--i));
+  top: 0;
+  width: calc(var(--u) * 97);
+  height: 100%;
+  padding: 0 0 calc(var(--u) * 7); /* the letter sits a little above the middle, like in Figma */
+  border: 1px solid #cec8ea;
+  border-radius: calc(var(--u) * 19);
+  background: #fff;
+  color: #2b272b;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 34);
+  line-height: 1.15;
+  text-align: center;
+  text-transform: uppercase;
+  caret-color: #3423c7;
+}
+
+/* The box being typed in: the 2 px border of the first box in Figma (drawn inside, so the letter doesn't move),
+   plus the same focus outline as the other form pages. */
+.child-login-box:focus {
+  box-shadow: inset 0 0 0 1px #cec8ea;
+  outline: 2px solid #3423c7;
+  outline-offset: 1px;
+}
+
+.child-login .child-login-example {
+  left: 0;
+  top: calc(var(--u) * 362);
+  color: #625b78;
+  font-size: calc(var(--t) * 16);
+  white-space: nowrap;
+}
+
+.child-login .child-login-submit { top: calc(var(--u) * 429); }
+
+/* ---------- Help ---------- */
+.child-login .child-login-help {
+  left: 0;
+  top: calc(var(--u) * 533);
+  width: 100%;
+  height: calc(var(--u) * 117);
+  border-radius: calc(var(--u) * 24);
+  background: #dcd7ff;
+  overflow: hidden;
+}
+
+.child-login-help-title,
+.child-login-help-text {
+  position: absolute;
+  left: calc(var(--u) * 24);
+  white-space: nowrap;
+}
+
+.child-login-help-title {
+  top: calc(var(--u) * 18);
+  font-size: calc(var(--t) * 20);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.child-login-help-text {
+  top: calc(var(--u) * 53);
+  font-size: calc(var(--t) * 17);
+}

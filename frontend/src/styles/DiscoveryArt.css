@@ -1,0 +1,95 @@
+/* Left card of the child log-in. Static. Same scale as AuthLayout.css.
+   Inside the characters box the pieces are placed in percentages of the box, like in Figma. */
+
+.child-login .auth-panel { background: #dcd7ff; }
+
+.discovery-characters {
+  left: calc(var(--u) * 55);
+  top: calc(var(--u) * 584);
+  width: calc(var(--u) * 602);
+  height: calc(var(--u) * 336);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.discovery-characters > * {
+  position: absolute;
+  max-width: none;
+}
+
+.discovery-white-large {
+  left: 70.95%;
+  top: 57.41%;
+  width: 19.84%;
+  height: 38.95%;
+}
+
+.discovery-white-small {
+  left: 67.41%;
+  top: 70.72%;
+  width: 11.8%;
+  height: 21.54%;
+}
+
+.discovery-picture {
+  left: 0;
+  top: 0;
+  width: 99.39%;
+  height: 99.38%;
+  overflow: hidden;
+}
+
+.discovery-picture img {
+  position: absolute;
+  left: 0.65%;
+  top: 0.54%;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+
+.discovery-detail-left {
+  left: 33.99%;
+  top: 32.74%;
+  width: 1.58%;
+  height: 2.66%;
+}
+
+.discovery-detail-right {
+  left: 65.45%;
+  top: 34.52%;
+  width: 2.11%;
+  height: 3.82%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.discovery-detail-right img {
+  flex: none;
+  width: calc(var(--u) * 10.5816);
+  height: calc(var(--u) * 10.3789);
+  max-width: none;
+  transform: rotate(-75.57deg);
+}
+
+.discovery-ring {
+  left: calc(var(--u) * 470);
+  top: calc(var(--u) * 394);
+  width: calc(var(--u) * 58);
+  height: calc(var(--u) * 58);
+}
+
+.discovery-dot-large {
+  left: calc(var(--u) * 542);
+  top: calc(var(--u) * 429);
+  width: calc(var(--u) * 23);
+  height: calc(var(--u) * 23);
+}
+
+.discovery-dot-small {
+  left: calc(var(--u) * 518);
+  top: calc(var(--u) * 493);
+  width: calc(var(--u) * 10);
+  height: calc(var(--u) * 10);
+}

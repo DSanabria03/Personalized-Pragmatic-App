@@ -40,7 +40,7 @@ const ACTIONS = {
 const NEEDS = { dashboard: 'therapist', 'add-child': 'therapist', 'child-code': 'therapist', 'child-home': 'child', 'child-setup': 'child' };
 
 // Redesigned screens: their design has no footer. The other screens keep it until they are redesigned.
-const NO_FOOTER = ['home', 'login', 'register', 'add-child', 'child-code'];
+const NO_FOOTER = ['home', 'login', 'register', 'add-child', 'child-code', 'child-login'];
 
 function startScreen(session) {
   if (session && session.role === 'child') return 'child-home';

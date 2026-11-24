@@ -102,12 +102,13 @@ def _normalize_code(code: str) -> str:
 
 
 def _new_child_code(con) -> str:
-    """PIP + 3 digits (like PIP742). If those run out, 4 digits."""
-    for digits in (3, 3, 3, 3, 3, 4, 4, 4, 4, 5):
-        code = CODE_PREFIX + "".join(secrets.choice("0123456789") for _ in range(digits))
-        if not con.execute("SELECT 1 FROM children WHERE code = ?", (code,)).fetchone():
-            return code
-    raise AccountError("Could not create a new code, please try again.", 500)
+    """A free code, always PIP + 3 digits (like PIP742): 6 characters, the 6 boxes of the child login.
+    That makes 1000 codes for the whole app; when they are all taken, no new code can be made."""
+    taken = {row["code"] for row in con.execute("SELECT code FROM children")}
+    free = [code for code in (f"{CODE_PREFIX}{n:03d}" for n in range(1000)) if code not in taken]
+    if not free:
+        raise AccountError("All 1000 login codes are in use, so a new one can't be created.", 409)
+    return secrets.choice(free)
 
 
 def create_child(therapist_id: int, name: str, age: str = "", parent_email: str = ""):

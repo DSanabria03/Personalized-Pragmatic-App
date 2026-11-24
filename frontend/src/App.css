@@ -412,39 +412,6 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
-/* Casillas del código del niño (ChildLogin) */
-.child-code-label {
-  display: block;
-  margin-bottom: 12px;
-  font-size: 12px;
-  font-weight: bold;
-  color: #555;
-  text-transform: uppercase;
-}
-
-.child-code-inputs {
-  display: flex;
-  gap: 10px;
-}
-
-.child-code-inputs .code-box {
-  flex: 1;
-  min-width: 0;
-  height: 70px;
-  border: 2px solid #d2d9d0;
-  border-radius: 14px;
-  text-align: center;
-  font-size: 28px;
-  font-weight: bold;
-  font-family: monospace;
-  text-transform: uppercase;
-  background: #fff;
-  outline: none;
-}
-
-.child-code-inputs .code-box:focus {
-  border-color: #6e42c1;
-}
 /* ============================================
    PANEL DEL TERAPEUTA + HOME DEL NIÑO
    ============================================ */
