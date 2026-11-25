@@ -4,9 +4,12 @@ import HomeJoin from './HomeJoin';
 import HomeScreen from './HomeScreen';
 import HomeStory from './HomeStory';
 import PageHeader from './PageHeader';
+import { useRevealOnce } from '../utils/useRevealOnce';
 import '../styles/Home.css';
 
 export default function Home({ onNavigate }) {
+  const [titleRef, titleShown] = useRevealOnce(0.25);
+
   // "Log-in" opens the therapist login (or the dashboard if already logged in),
   // "My Pip" opens the child login (or the child's home if already logged in).
 
@@ -29,7 +32,7 @@ export default function Home({ onNavigate }) {
         <HomeScreen className="hero-screen" label="Welcome">
           <div className="home-stage">
             <img className="home-circle" src="/resources/home/circle.svg" alt="" />
-            <h1 className="home-title home-enter">HI,{' '}<br />EXPLORER!</h1>
+            <h1 ref={titleRef} className={`home-title home-fade${titleShown ? ' is-shown' : ''}`}>HI,{' '}<br />EXPLORER!</h1>
             <img className="home-dots" src="/resources/home/dots.png" alt="" />
             <ExplorersIllustration />
           </div>

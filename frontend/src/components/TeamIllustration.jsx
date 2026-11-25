@@ -1,30 +1,18 @@
 import teamSvg from '../assets/home/team.svg?raw';
-import { rigIllustration } from '../utils/rigIllustration';
+import { range, rigIllustration } from '../utils/rigIllustration';
 
-// The groups made here are moved by HomeJoin.css.
-const MARKUP = rigIllustration(teamSvg, {
-  name: 'team',
-  parts: [
-    ['team-head', 'Vector', 'Vector'],
-    ['team-head', 'Vector_6', 'Vector_16'],
-    ['team-hair', 'Vector_15', 'Vector_16'],
-    ['team-hair-end', 'Vector_16', 'Vector_16'],
-    ['team-wave', 'Vector_2', 'Vector_2'],
-    ['team-wave', 'Vector_17', 'Vector_19'],
-    ['team-puzzle-piece', 'Livello 2', 'Livello 2'], // person with the puzzle piece
-    ['team-puzzle-circle', 'Livello 3', 'Livello 3'], // person with the circle that fits in it
-    ['team-ring', 'Ellipse 4', 'Ellipse 4'],
-    ['illustration-talk', 'Vector_10', 'Vector_10'],
-    ['illustration-blink', 'Vector_11', 'Vector_12'],
-    ['illustration-blink illustration-blink--late', 'Vector_71', 'Vector_72'],
-    ['illustration-blink illustration-blink--later', 'Vector_48', 'Vector_49'],
-  ],
-});
+const MARKUP = rigIllustration(teamSvg, [
+  { period: 1.56, joints: [{ nodes: [200, 215, 216, 217], pivot: [232, 218], angle: 8 }] }, // waving hand
+  { period: 3.12, joints: [{ nodes: [213, 214], pivot: [180, 74], angle: 6, lag: 0.35 }] }, // ponytail
+  // the two puzzle pieces lean towards each other
+  { period: 3.12, joints: [{ nodes: [...range(263, 275), 277, 278, 281, 282, 287], pivot: [433, 500], angle: -2.5 }] },
+  { period: 3.12, joints: [{ nodes: [230, 231, 232, ...range(236, 248), ...range(251, 261)], pivot: [880, 500], angle: 2.5 }] },
+]);
 
 export default function TeamIllustration() {
   return (
     <div
-      className="join-team home-illustration home-enter"
+      className="join-team home-illustration"
       role="img"
       aria-label="Three friends: one waves and two put a puzzle together"
       dangerouslySetInnerHTML={MARKUP}

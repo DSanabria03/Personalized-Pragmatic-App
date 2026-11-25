@@ -114,128 +114,37 @@
   height: calc(var(--u) * 670);
 }
 
-/* Neighbouring shapes of one colour show a light hairline in browsers: a thin stroke of that colour closes it. */
-.home-explorers :is(#explorers-Vector_14, #explorers-Vector_15, #explorers-Vector_16) {
-  stroke: #2b272b;
-  stroke-width: 0.8px;
-}
-
-.home-explorers #explorers-Vector_26 {
-  stroke: #3423c7;
-  stroke-width: 0.8px;
-}
-
 /* ---------- Animation ----------
-   Origins are coordinates inside the 699 x 670 illustration.
-   The bodies lean with a skew along the waist line: that line stays still, so they never come off the legs. */
-.home-illustration g { transform-box: view-box; }
+   Characters: every ".rig" group made by utils/rigIllustration.js swings around its own joint,
+   from one side to the other and back (its angle, timing and joint are set on the group itself).
+   Titles fade in the first time they are seen. The striped circles keep turning.
+   Out of view everything pauses. */
+.home-illustration .rig { transform-box: view-box; }
 
-/* Shared by the story and join illustrations: these shapes scale around their own centre. */
-.home-illustration g.illustration-blink,
-.home-illustration g.illustration-talk {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-.explorer-standing    { transform-origin: 228.492px 356.553px; }
-.explorer-kneeling    { transform-origin: 322.073px 493.537px; }
-.explorer-hair        { transform-origin: 405px 208px; }
-.explorer-hair-middle { transform-origin: 449px 212px; }
-.explorer-hair-end    { transform-origin: 489px 230px; }
-.explorer-eye         { transform-origin: 372.177px 213.491px; }
-.explorer-pupil-left  { transform-origin: 568.224px 319.812px; }
-.explorer-pupil-right { transform-origin: 657.096px 320.004px; }
+.home-fade { opacity: 0; }
+.home-fade.is-shown { opacity: 1; }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* Entrance, once */
-  .home-title { animation: home-title-in 0.9s ease-out backwards; }
-  .home-explorers { animation: home-explorers-in 1s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
-
-  /* Standing explorer: scans the sky, focuses the telescope, hair follows, blinks */
-  .explorer-standing { animation: explorer-scan 7s ease-in-out 1s infinite; }
-  .explorer-telescope { animation: explorer-focus 7s ease-in-out 1s infinite; }
-  .explorer-hair { animation: explorer-hair-swing 3.5s ease-in-out 1s infinite; }
-  .explorer-hair-middle { animation: explorer-hair-swing 3.5s ease-in-out 1.2s infinite; }
-  .explorer-hair-end { animation: explorer-hair-swing 3.5s ease-in-out 1.4s infinite; }
-  .explorer-eye { animation: explorer-blink 4.3s ease-in-out 1s infinite; }
-
-  /* Kneeling explorer: breathes and looks around through the binoculars */
-  .explorer-kneeling { animation: explorer-breathe 5s ease-in-out 1s infinite; }
-  .explorer-look { animation: explorer-look-around 8s ease-in-out 1s infinite; }
-  .explorer-pupil-left,
-  .explorer-pupil-right { animation: explorer-blink 5.2s ease-in-out 1.5s infinite; }
-
-  /* Faces in the story and join screens */
-  .illustration-blink { animation: explorer-blink 4.6s ease-in-out 1s infinite; }
-  .illustration-blink--late { animation-delay: 2.3s; }
-  .illustration-blink--later { animation-delay: 3.4s; }
-  .illustration-talk { animation: illustration-talk 6s ease-in-out 1s infinite; }
-
-  /* Background */
-  .home-circle { animation: home-circle-turn 60s linear infinite; }
-  /* The same dots on both sides of the edge between hero and story: they must move as one, so they never pause. */
-  .home-dots,
-  .story-dots-top { animation: home-dots-float 8s ease-in-out infinite; }
-
-  /* Out of view: paused. Entrances: wait until the screen is seen. */
-  .home-screen:not(.is-visible) :not(.home-dots, .story-dots-top),
-  .home-screen:not(.has-entered) .home-enter {
-    animation-play-state: paused;
+  .home-illustration .rig {
+    animation: home-swing var(--duration) ease-in-out var(--delay) infinite alternate;
   }
+
+  .home-fade { transition: opacity 1.4s cubic-bezier(0.22, 0.61, 0.36, 1); }
+
+  .home-circle { animation: home-circle-turn 7.8s linear infinite; }
+
+  .home-screen:not(.is-visible) * { animation-play-state: paused; }
 }
 
-@keyframes home-title-in {
-  from { opacity: 0; transform: translateY(calc(var(--u) * -30)); }
+@media (prefers-reduced-motion: reduce) {
+  .home-fade { opacity: 1; }
 }
 
-@keyframes home-explorers-in {
-  from { transform: translateY(calc(var(--u) * 120)); }
-}
-
-@keyframes explorer-scan {
-  0%, 100% { transform: rotate(20.973deg) skewX(0deg) rotate(-20.973deg); }
-  30%, 45% { transform: rotate(20.973deg) skewX(2.4deg) rotate(-20.973deg); }
-  72%, 82% { transform: rotate(20.973deg) skewX(-1.4deg) rotate(-20.973deg); }
-}
-
-@keyframes explorer-breathe {
-  0%, 100% { transform: rotate(26.247deg) skewX(0deg) rotate(-26.247deg); }
-  50% { transform: rotate(26.247deg) skewX(1.3deg) rotate(-26.247deg); }
-}
-
-@keyframes explorer-focus {
-  0%, 30%, 48%, 100% { transform: translate(0, 0); }
-  36%, 42% { transform: translate(-3px, -4px); }
-}
-
-@keyframes explorer-hair-swing {
-  0%, 100% { transform: rotate(0deg); }
-  30% { transform: rotate(-5deg); }
-  70% { transform: rotate(4deg); }
-}
-
-@keyframes explorer-look-around {
-  0%, 10%, 92%, 100% { transform: translate(0, 0); }
-  18%, 34% { transform: translate(10px, -4px); }
-  42%, 58% { transform: translate(-9px, 1px); }
-  66%, 82% { transform: translate(3px, 10px); }
-}
-
-@keyframes explorer-blink {
-  0%, 90%, 98%, 100% { transform: scaleY(1); }
-  94% { transform: scaleY(0.1); }
+@keyframes home-swing {
+  from { transform: rotate(calc(var(--angle) * -1deg)); }
+  to { transform: rotate(calc(var(--angle) * 1deg)); }
 }
 
 @keyframes home-circle-turn {
   to { transform: rotate(360deg); }
-}
-
-@keyframes home-dots-float {
-  50% { transform: translateY(calc(var(--u) * -10)); }
-}
-
-@keyframes illustration-talk {
-  0%, 40%, 100% { transform: scaleY(1); }
-  6%, 18%, 30% { transform: scaleY(0.4); }
-  12%, 24%, 36% { transform: scaleY(1.1); }
 }
