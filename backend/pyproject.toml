@@ -8,8 +8,19 @@ dependencies = [
     "ollama",
     "httpx",
     "python-dotenv",
+    "tzdata>=2026.6",
 ]
 
 [project.optional-dependencies]
 # Free local voice for Pip (Piper). Install with:  uv sync --extra voice
 voice = ["piper-tts"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+# The app imports its modules from backend/ ("from database import db"), so the tests do the same.
+pythonpath = ["."]
+testpaths = ["tests"]

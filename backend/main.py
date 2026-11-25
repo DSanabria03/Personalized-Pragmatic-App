@@ -1,17 +1,19 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
 
-from database import init_db
-from routers.accounts import router as accounts_router
-from routers.story import router as story_router
-from routers.tts import router as tts_router
+from dotenv import load_dotenv
 
-# Read settings like ELEVENLABS_API_KEY from backend/.env (never upload that file to GitHub!)
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
+# Read settings like ELEVENLABS_API_KEY from backend/.env (never upload that file to GitHub!).
+# It must run before the app's own imports: some of them read their settings when they are imported
+# (PIP_DB_PATH in database.py, OLLAMA_HOST and LLM_MODEL in services/llm_service.py, APP_TIMEZONE in services/progress.py).
+load_dotenv(Path(__file__).resolve().parent / ".env")
+
+from fastapi import FastAPI  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+
+from database import init_db  # noqa: E402
+from routers.accounts import router as accounts_router  # noqa: E402
+from routers.story import router as story_router  # noqa: E402
+from routers.tts import router as tts_router  # noqa: E402
 
 init_db()   # creates backend/data/pip.db and its tables if they do not exist yet
 

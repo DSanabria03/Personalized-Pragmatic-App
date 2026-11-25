@@ -9,11 +9,18 @@ For the therapist:
 """
 
 import json
-from datetime import date, datetime, timedelta, timezone
+import os
+from datetime import UTC, date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from database import DATA_DIR, db
 
 STORIES_DIR = DATA_DIR / "stories"
+
+# The database saves every time in UTC (datetime('now')). Days and weeks (practice days, streak, "this week",
+# activities per day) are counted in the app's time zone: the app is used in Italy, so a story played at 00:30
+# there counts for that day, and the week starts on Monday at midnight Italian time.
+TIMEZONE = ZoneInfo(os.getenv("APP_TIMEZONE", "Europe/Rome"))
 
 XP_FIRST_TRY = 15
 XP_SECOND_TRY = 10
@@ -38,7 +45,19 @@ BADGES = [
 
 
 def _parse(ts: str | None) -> datetime | None:
-    return datetime.strptime(ts[:19], "%Y-%m-%d %H:%M:%S") if ts else None
+    """A time from the database (UTC, like '2026-11-01 23:30:00') in the app's time zone."""
+    if not ts:
+        return None
+    return datetime.strptime(ts[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC).astimezone(TIMEZONE)
+
+
+def _day(ts: str) -> str:
+    """The day of a database time in the app's time zone: '2026-11-01 23:30:00' (UTC) -> '2026-11-02' in Italy."""
+    return _parse(ts).date().isoformat()
+
+
+def _today() -> date:
+    return datetime.now(TIMEZONE).date()
 
 
 def xp_for_scene(attempts_needed: int, solved: bool) -> int:
@@ -129,7 +148,7 @@ def _run_minutes(run) -> float:
 
 
 def _measures(runs: list, attempts: list) -> dict:
-    days = {a["created_at"][:10] for a in attempts}
+    days = {_day(a["created_at"]) for a in attempts}
     return {
         "xp": sum(r["xp_earned"] for r in runs),
         "stories_completed": len(runs),
@@ -142,7 +161,7 @@ def _measures(runs: list, attempts: list) -> dict:
 
 
 def _week(days: set[str], today: date | None = None) -> list[dict]:
-    today = today or datetime.now(timezone.utc).date()
+    today = today or _today()
     monday = today - timedelta(days=today.weekday())
     week = []
     for i in range(7):
@@ -163,7 +182,7 @@ def child_progress(child_id: int, language: str = "en") -> dict:
                        "progress": min(value, b["target"]), "target": b["target"], "earned": value >= b["target"]})
     week = _week(m["days"])
     streak = 0
-    for d in reversed([w for w in week if w["date"] <= datetime.now(timezone.utc).date().isoformat()]):
+    for d in reversed([w for w in week if w["date"] <= _today().isoformat()]):
         if not d["active"]:
             break
         streak += 1
@@ -184,7 +203,7 @@ def child_progress(child_id: int, language: str = "en") -> dict:
 
 # ---------------------------------------------------------------- the therapist's dashboard
 def _monday() -> date:
-    today = datetime.now(timezone.utc).date()
+    today = _today()
     return today - timedelta(days=today.weekday())
 
 
@@ -212,7 +231,7 @@ def therapist_overview(therapist_id: int) -> dict:
     for c in children:
         runs, attempts = history[c["id"]]
         m = _measures(runs, attempts)
-        runs_week = [r for r in runs if r["finished_at"] >= monday]
+        runs_week = [r for r in runs if _day(r["finished_at"]) >= monday]
         for r in runs_week:
             per_day[_parse(r["finished_at"]).weekday()] += 1
             week_minutes += _run_minutes(r)
@@ -253,12 +272,12 @@ def child_detail(therapist_id: int, child_id: int) -> dict | None:
     runs = sorted(all_runs, key=lambda r: r["id"], reverse=True)[:20]
 
     monday = _monday().isoformat()
-    runs_week = [r for r in all_runs if r["finished_at"] >= monday]
+    runs_week = [r for r in all_runs if _day(r["finished_at"]) >= monday]
     week = {
         "start": monday,
         "activities": len(runs_week),
         "practice_minutes": round(sum(_run_minutes(r) for r in runs_week)),
-        "practice_days": len({a["created_at"][:10] for a in attempts if a["created_at"][:10] >= monday}),
+        "practice_days": len({day for day in map(_day, (a["created_at"] for a in attempts)) if day >= monday}),
     }
 
     # Per category (e.g. hidden_requests): how many of its scenes the child has finished at least once
