@@ -73,7 +73,7 @@ export default function App() {
   };
 
   const logout = useCallback(() => {
-    api('/api/logout', { method: 'POST' }).catch(() => {});
+    api('/api/auth/logout', { method: 'POST' }).catch(() => {});
     saveSession(null);
     setSession(null);
     setDashboardChild(null);
@@ -117,10 +117,10 @@ export default function App() {
     go(target);
   };
 
-  // "Choose your Pip": the nickname and the Pip are saved in the database (PUT /api/profile).
+  // "Choose your Pip": the nickname and the Pip are saved in the database (PUT /api/me/profile).
   // The session keeps a copy so the screens can show them without asking the backend again.
   const updateChildProfile = async ({ nickname, pip }) => {
-    const child = await api('/api/profile', { method: 'PUT', body: { nickname, pip: pip || '' } });
+    const child = await api('/api/me/profile', { method: 'PUT', body: { nickname, pip: pip || '' } });
     const s = { ...session, nickname: child.nickname, pip: child.pip };
     saveSession(s);
     setSession(s);

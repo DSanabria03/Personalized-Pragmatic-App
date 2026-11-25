@@ -24,7 +24,7 @@ export default function TherapistRegister({ onNavigate, onLogin }) {
     setError('');
     setIsSubmitting(true);
     try {
-      const data = await api('/api/therapists/register', {
+      const data = await api('/api/auth/register', {
         method: 'POST',
         body: {
           full_name: registration.fullName,

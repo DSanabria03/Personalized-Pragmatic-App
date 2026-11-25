@@ -29,6 +29,15 @@ def fixed_today(monkeypatch):
     monkeypatch.setattr(progress, "_today", lambda: TODAY)
 
 
+@pytest.fixture
+def client():
+    """Calls the API like the browser does, without starting a server (the database is the test's own)."""
+    from fastapi.testclient import TestClient
+
+    import main
+    return TestClient(main.app)
+
+
 def make_therapist(email="emma@littlesteps.it", name="Dr. Emma"):
     """Registers a therapist. Returns what the register endpoint returns: {"token", "role", "therapist"}."""
     return accounts.register_therapist(name, "", email, PASSWORD, practice="Little Steps")

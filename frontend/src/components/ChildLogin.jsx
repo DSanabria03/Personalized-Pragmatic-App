@@ -58,7 +58,7 @@ export default function ChildLogin({ onNavigate, onLogin }) {
     setIsSubmitting(true);
 
     try {
-      const data = await api('/api/children/login', { method: 'POST', body: { code } });
+      const data = await api('/api/auth/child-login', { method: 'POST', body: { code } });
       onLogin(data); // -> the child's home page
     } catch (err) {
       setError(err.status ? err.message : 'Could not connect to the server. Is the backend running?');

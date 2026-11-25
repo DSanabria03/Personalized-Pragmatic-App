@@ -245,13 +245,14 @@ The app handles data about children, so it keeps as little as possible and keeps
 backend/
   main.py                 FastAPI app: loads .env, creates the database, registers the routers
   database.py             SQLite schema and connection (tables listed in section 6)
+  dependencies.py         who is calling: the login token checks shared by the routers
   routers/                HTTP endpoints: accounts.py, story.py, tts.py
   services/
     accounts.py           therapists, children, login codes, tokens
     progress.py           XP, levels, badges, weeks, the therapist's statistics
     llm_service.py        everything that talks to the LLM: prompts, examples, checks, fallbacks
   data/stories/           one JSON file per story
-  tests/                  pytest tests for accounts and progress
+  tests/                  pytest tests: the API, accounts and progress
   tools/chat_with_pip.py  practice chat with Pip in the terminal
 frontend/
   public/resources/       images and icons exported from Figma, one folder per screen
@@ -267,36 +268,38 @@ frontend/
 ## 8. Backend API
 
 Interactive documentation: **[http://localhost:8000/docs](http://localhost:8000/docs)** (while the backend runs).
-After logging in, send the token as `Authorization: Bearer <token>`. `language` is `en` or `it`.
+After logging in, send the token as `Authorization: Bearer <token>` (in `/docs`: log in, copy the token, press
+**Authorize**). `language` is `en` or `it`. Errors come as `{"detail": "message for the user"}`, except 422
+(the data sent has the wrong shape), where FastAPI sends a list of problems.
 
-| Method and URL                               | Who       | What it does                                                                   |
-| -------------------------------------------- | --------- | ------------------------------------------------------------------------------ |
-| `POST /api/therapists/register`            | anyone    | Create a therapist account → token                                            |
-| `POST /api/therapists/login`               | anyone    | Email + password → token                                                      |
-| `POST /api/children/login`                 | anyone    | Child's code (e.g. `PIP742`) → token                                        |
-| `GET /api/me`                              | logged in | Who is logged in (for a child, also their progress and therapist)              |
-| `POST /api/logout`                         | logged in | Ends this login                                                                |
-| `GET /api/children`                        | therapist | This week's numbers and every child with their statistics                      |
-| `POST /api/children`                       | therapist | Add a child → their login code                                                |
-| `GET /api/children/{id}`                   | therapist | One child's statistics in detail                                               |
-| `POST /api/children/{id}/reset-code`       | therapist | New login code (the old one stops working)                                     |
-| `PUT /api/children/{id}/plan`              | therapist | Support level and weekly goal                                                  |
-| `GET /api/progress`                        | child     | XP, level, badges, this week                                                   |
-| `PUT /api/profile`                         | child     | Nickname and chosen Pip                                                        |
-| `GET /api/stories`                         | therapist | Every story with its exercises and hidden meanings (Activities page)           |
-| `GET /api/stories/{story_id}`              | anyone    | The story and its scenes, **without** the right answers                  |
-| `POST /api/stories/{story_id}/start`       | child     | Starts a play-through, so its answers are saved together                       |
-| `POST /api/stories/{story_id}/narrate`     | anyone    | Pip describes a scene                                                          |
-| `POST /api/stories/{story_id}/check`       | anyone    | Right or not, Pip's action and the customer's reaction (no LLM, nothing saved) |
-| `POST /api/stories/{story_id}/answer`      | anyone    | The same plus Pip's sentence (LLM); saved for logged-in children               |
-| `POST /api/stories/{story_id}/finish`      | anyone    | Pip's goodbye and the results ("Great job" screen)                             |
-| `POST /api/tts` · `GET /api/tts/status` | anyone    | A sentence as audio · which voice is in use                                   |
+| Method and URL                          | Who       | What it does                                                                   |
+| --------------------------------------- | --------- | ------------------------------------------------------------------------------ |
+| `POST /api/auth/register`               | anyone    | Create a therapist account → **201**, token                                    |
+| `POST /api/auth/login`                  | anyone    | Therapist: email + password → token                                            |
+| `POST /api/auth/child-login`            | anyone    | Child: their code (e.g. `PIP742`) → token                                      |
+| `POST /api/auth/logout`                 | anyone    | Ends this login                                                                |
+| `GET /api/me`                           | logged in | Who is logged in (a child also gets their therapist's name and practice)       |
+| `GET /api/me/progress`                  | child     | XP, level, badges, this week                                                   |
+| `PUT /api/me/profile`                   | child     | Nickname and chosen Pip                                                        |
+| `GET /api/children`                     | therapist | This week's numbers and every child with their statistics                      |
+| `POST /api/children`                    | therapist | Add a child → **201**, with their login code                                   |
+| `GET /api/children/{id}`                | therapist | One child's statistics in detail                                               |
+| `PATCH /api/children/{id}`              | therapist | Support level and/or weekly goal (fields left out stay as they are)            |
+| `POST /api/children/{id}/reset-code`    | therapist | New login code (the old one stops working)                                     |
+| `GET /api/stories`                      | therapist | Every story with its exercises and hidden meanings (Activities page)           |
+| `GET /api/stories/{story_id}`           | anyone    | The story and its scenes, **without** the right answers                        |
+| `POST /api/stories/{story_id}/start`    | child     | Starts a play-through, so its answers are saved together                       |
+| `POST /api/stories/{story_id}/narrate`  | anyone    | Pip describes a scene                                                          |
+| `POST /api/stories/{story_id}/check`    | anyone    | Right or not, Pip's action and the customer's reaction (no LLM, nothing saved) |
+| `POST /api/stories/{story_id}/answer`   | anyone    | The same plus Pip's sentence (LLM); saved for logged-in children               |
+| `POST /api/stories/{story_id}/finish`   | anyone    | Pip's goodbye and the results ("Great job" screen)                             |
+| `POST /api/tts` · `GET /api/tts/status` | anyone    | A sentence as audio · which voice is in use                                    |
 
 ## 9. Tests and code quality
 
 ```bash
 cd backend
-uv run pytest                 # tests of accounts and progress (each test uses its own temporary database)
+uv run pytest                 # the API, accounts and progress (each test uses its own temporary database)
 uvx ruff check .              # Python linter
 
 cd frontend

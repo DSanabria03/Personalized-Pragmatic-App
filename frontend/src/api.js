@@ -23,6 +23,20 @@ export function saveSession(session) {
   }
 }
 
+// The message of a backend error. Usually "detail" is a sentence for the user; when the data sent doesn't have the
+// right shape (status 422) FastAPI sends a list instead: [{ loc: ['body', 'weekly_goal'], msg: 'Input should be...' }].
+function errorMessage(detail, status) {
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail) && detail.length) {
+    const problems = detail.map((d) => {
+      const field = Array.isArray(d.loc) ? d.loc[d.loc.length - 1] : '';
+      return field ? `${String(field).replace(/_/g, ' ')}: ${d.msg}` : d.msg;
+    });
+    return `Please check the data: ${problems.join('; ')}.`;
+  }
+  return `Error ${status}`;
+}
+
 // fetch() with the login token. Throws an Error with the backend's message if something goes wrong.
 export async function api(path, { method = 'GET', body, token } = {}) {
   const session = loadSession();
@@ -37,7 +51,7 @@ export async function api(path, { method = 'GET', body, token } = {}) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error(typeof data.detail === 'string' ? data.detail : `Error ${response.status}`);
+    const error = new Error(errorMessage(data.detail, response.status));
     error.status = response.status;
     throw error;
   }

@@ -17,7 +17,7 @@ export default function TherapistLogin({ onNavigate, onLogin }) {
 
     setBusy(true);
     try {
-      const data = await api('/api/therapists/login', { method: 'POST', body: { email, password } });
+      const data = await api('/api/auth/login', { method: 'POST', body: { email, password } });
       onLogin(data); // -> the therapist's dashboard
     } catch (err) {
       setError(err.status ? err.message : 'Could not connect to the server. Is the backend running?');

@@ -54,8 +54,8 @@ export default function ChildHome({ session, settings, onNavigate, onLogout }) {
   const childName = session.nickname || session.name;
 
   useEffect(() => {
-    api(`/api/me?language=${lang}`)
-      .then((me) => setProgress(me.progress))
+    api(`/api/me/progress?language=${lang}`)
+      .then(setProgress)
       .catch((e) => setError(e.message));
   }, [lang]);
 

@@ -46,7 +46,7 @@ export default function TherapistChild({ session, childId, onNavigate, onLogout,
   };
 
   const savePlan = async (plan) => {
-    const child = await api(`/api/children/${shown.child.id}/plan`, { method: 'PUT', body: plan });
+    const child = await api(`/api/children/${shown.child.id}`, { method: 'PATCH', body: plan });
     setDetail({ ...shown, child: { ...shown.child, support_level: child.support_level, weekly_goal: child.weekly_goal } });
     setEditing(false);
     reload();

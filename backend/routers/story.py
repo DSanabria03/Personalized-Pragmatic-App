@@ -24,10 +24,11 @@ import re
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import AfterValidator, BaseModel, Field
 
-from services import accounts, llm_service, progress
+from dependencies import CurrentTherapist, OptionalUser
+from services import llm_service, progress
 
 router = APIRouter(prefix="/api/stories", tags=["stories"])
 
@@ -103,9 +104,8 @@ def find_scene(story: dict, scene_id: str) -> tuple[int, dict]:
     raise HTTPException(404, f"Scene '{scene_id}' not found in story '{story['id']}'")
 
 
-def logged_in_child(authorization: str | None) -> dict | None:
+def logged_in_child(user: dict | None) -> dict | None:
     """The child who is playing, if the browser sent a child's login token."""
-    user = accounts.user_from_token(authorization)
     return user["child"] if user and user["role"] == "child" else None
 
 
@@ -158,13 +158,8 @@ class FinishRequest(BaseModel):
 
 # ---------- endpoints ----------
 @router.get("")
-def list_stories(language: str = "en", authorization: str | None = Header(default=None)):
+def list_stories(_therapist: CurrentTherapist, language: str = "en"):
     """For the therapist's "Activities" page: what each exercise shows and the meaning the child should find."""
-    user = accounts.user_from_token(authorization)
-    if not user:
-        raise HTTPException(401, "Please log in again.")
-    if user["role"] != "therapist":
-        raise HTTPException(403, "Only for therapists.")
     lang = check_language(language)
     stories = []
     for path in sorted(STORIES_DIR.glob("*.json")):
@@ -200,7 +195,7 @@ def get_story(story_id: str, language: str = "en"):
 
 
 @router.post("/{story_id}/narrate")
-def narrate(story_id: str, req: NarrateRequest, authorization: str | None = Header(default=None)):
+def narrate(story_id: str, req: NarrateRequest, user: OptionalUser):
     lang = check_language(req.language)
     story = load_story(story_id)
     index, raw = find_scene(story, req.scene_id)
@@ -208,7 +203,7 @@ def narrate(story_id: str, req: NarrateRequest, authorization: str | None = Head
     previous = localized_scene(story["scenes"][index - 1], lang) if index > 0 else None
     speech = llm_service.narrate_scene(
         lang, req.pip_name, pip_role(story, raw, lang), pick(story["setting"], lang), scene, previous,
-        is_first=(index == 0), child_name=child_name_for(logged_in_child(authorization), req.child_name),
+        is_first=(index == 0), child_name=child_name_for(logged_in_child(user), req.child_name),
     )
     return {"scene_id": scene["id"], "narration": speech, "speaker": scene["speaker"],
             "listener": scene["listener"], "quote": scene["quote"]}
@@ -264,9 +259,9 @@ def check(story_id: str, req: AnswerRequest):
 
 
 @router.post("/{story_id}/answer")
-def answer(story_id: str, req: AnswerRequest, authorization: str | None = Header(default=None)):
+def answer(story_id: str, req: AnswerRequest, user: OptionalUser):
     lang, story, raw, scene, picked, result = evaluate(story_id, req)
-    child = logged_in_child(authorization)
+    child = logged_in_child(user)
     is_correct, outcome = result["is_correct"], result["outcome"]
 
     speech = llm_service.react_to_answer(
@@ -283,21 +278,21 @@ def answer(story_id: str, req: AnswerRequest, authorization: str | None = Header
 
 
 @router.post("/{story_id}/start")
-def start(story_id: str, req: StartRequest, authorization: str | None = Header(default=None)):
+def start(story_id: str, req: StartRequest, user: OptionalUser):
     """A logged-in child starts the story: creates a 'run' so all answers of this play-through belong together."""
     lang = check_language(req.language)
     load_story(story_id)
-    child = logged_in_child(authorization)
+    child = logged_in_child(user)
     if not child:
         return {"run_id": None, "child": None}
     return {"run_id": progress.start_run(child["id"], story_id, lang), "child": {"name": child["name"]}}
 
 
 @router.post("/{story_id}/finish")
-def finish(story_id: str, req: FinishRequest, authorization: str | None = Header(default=None)):
+def finish(story_id: str, req: FinishRequest, user: OptionalUser):
     lang = check_language(req.language)
     story = load_story(story_id)
-    child = logged_in_child(authorization)
+    child = logged_in_child(user)
     total = len(story["scenes"])
 
     # The results of this play-through (numbers for the "Great job" screen)
