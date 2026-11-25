@@ -18,11 +18,13 @@ from routers.accounts import router as accounts_router  # noqa: E402
 from routers.story import router as story_router  # noqa: E402
 from routers.tts import router as tts_router  # noqa: E402
 from services.accounts import AccountError  # noqa: E402
+from services.demo import seed_demo_data  # noqa: E402
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     init_db()   # when the server starts: creates backend/data/pip.db and its tables if they do not exist yet
+    seed_demo_data()   # first time only (no therapist yet): a demo therapist and child, see services/demo.py
     yield
 
 

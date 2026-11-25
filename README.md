@@ -119,11 +119,20 @@ Open **[http://localhost:5173](http://localhost:5173)**. To stop, press **Ctrl +
 
 ### First steps
 
-The database starts empty.
+The first time the backend starts (when the database has no therapist yet) it creates two **demo accounts**,
+so the app can be tried right away:
 
-1. **Log-in** → *Create a therapist account* → add a child → note the login code.
-2. **Log out** → **My Pip** → type the code → choose a nickname and a Pip → **Let's explore**.
-3. Log in as the therapist again to see the statistics.
+| Account   | How to log in                                                         |
+| --------- | --------------------------------------------------------------------- |
+| Therapist | **Log-in** → `emma@example.com` / `littlesteps2026` (Dr. Emma)        |
+| Child     | **My Pip** → code `PIP001` (Dan, 8 years, one of Dr. Emma's children) |
+
+1. **My Pip** → type `PIP001` → choose a nickname and a Pip → **Let's explore**.
+2. Log in as the therapist to see Dan's statistics, or create your own therapist account and add children.
+
+A database that already has data is never changed: to get the demo accounts on a laptop that already has one, stop
+the backend and delete `backend/data/pip.db`. To start with an empty database instead, set `PIP_DEMO_DATA=false`.
+These passwords are public, so never use the demo accounts with real data.
 
 Italian: choose it in **Settings** before playing. For the browser's voice in Italian, install an Italian system voice
 (Mac: System Settings → Accessibility → Spoken Content → System voice → Manage Voices; Windows: Settings → Time &
@@ -138,6 +147,7 @@ terminal before starting the backend. **Never commit `.env`** (it is in `.gitign
 | ------------------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------- |
 | `PIP_DB_PATH`                                                                 | `backend/data/pip.db`                         | Where the SQLite database is saved                                      |
 | `APP_TIMEZONE`                                                                | `Europe/Rome`                                 | Time zone used to count days and weeks                                  |
+| `PIP_DEMO_DATA`                                                               | `true`                                        | `false`: don't create the demo accounts in a new database               |
 | `OLLAMA_HOST`                                                                 | `http://localhost:11434`                      | Where Ollama runs                                                       |
 | `LLM_MODEL`                                                                   | `qwen2.5:3b`                                  | Ollama model for Pip (e.g. `qwen2.5:1.5b` on slow laptops)            |
 | `LLM_THINK`                                                                   | *(not sent)*                                  | `false` for models that "think" before answering, to make them faster |
@@ -229,7 +239,7 @@ The app handles data about children, so it keeps as little as possible and keeps
 | `story_runs`, `attempts` | Each play-through and each picture the child chose, with what Pip said                                                            |
 
 - The database is **one local file**, `backend/data/pip.db`, and is in `.gitignore`. **Never force-add it.** To back it
-  up, stop the backend and copy the file; to start from zero, stop the backend and delete it.
+  up, stop the backend and copy the file; to start again with only the demo accounts, stop the backend and delete it.
 - The **LLM runs locally**: the child's choices and name are never sent to an online AI service.
 - **Guests** (nobody logged in, or the therapist's "Preview exercise") play without saving anything.
 - **ElevenLabs** is the only online service, and only if you add a key: it receives Pip's sentences, which can
@@ -250,6 +260,7 @@ backend/
   services/
     accounts.py           therapists, children, login codes, tokens
     progress.py           XP, levels, badges, weeks, the therapist's statistics
+    demo.py               the demo therapist and child of a new database
     llm_service.py        everything that talks to the LLM: prompts, examples, checks, fallbacks
   data/stories/           one JSON file per story
   tests/                  pytest tests: the API, accounts and progress
