@@ -97,7 +97,7 @@ export default function ChildLogin({ onNavigate, onLogin }) {
             />
           ))}
         </div>
-        <p id="child-login-example" className="child-login-example">An example code looks like PIP742.</p>
+        <p id="child-login-example" className="child-login-example">An example code looks like PIP001.</p>
 
         <button type="submit" className="auth-submit child-login-submit" disabled={isSubmitting}>
           {isSubmitting ? 'Checking code…' : 'Let’s go!'}

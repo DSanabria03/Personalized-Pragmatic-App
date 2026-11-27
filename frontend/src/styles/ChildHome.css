@@ -1,0 +1,142 @@
+/* Child's home - Figma "Child · Welcome · New design" (1512 x 982).
+   Uses the Home layout and pieces (Home.css: --u, .home-stage, .home-circle, .home-dots, .home-explorers):
+   only what is different from the Home hero is here. Every number is a pixel of the Figma frame. */
+
+/* ---------- Header: "Play" instead of "Log-in" ---------- */
+.page-header .child-home-play {
+  color: #2b272b;
+  font-weight: 700;
+}
+
+/* ---------- Hero ---------- */
+.child-home .home-title.child-home-title {
+  left: calc(var(--u) * 56);
+  top: calc(var(--u) * 130);
+  width: calc(var(--u) * 1400);
+  color: #3423c7;
+  font-size: calc(var(--u) * 210 * var(--title-scale, 1));
+  line-height: 1.1;
+}
+
+.child-home .home-circle {
+  top: calc(var(--u) * 460);
+}
+
+.child-home .home-explorers {
+  left: calc(var(--u) * 440);
+  top: calc(var(--u) * 365);
+  width: calc(var(--u) * 629);
+  height: calc(var(--u) * 603);
+}
+
+/* ---------- Below the first screen: the child's progress (not in Figma) ---------- */
+.child-home-more {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: 'Alexandria', sans-serif;
+  color: #2b272b;
+}
+
+.child-home-error { color: #a3123f; }
+
+.child-home-card {
+  background: #fff;
+  border-radius: 32px;
+  padding: 28px 32px;
+}
+
+.child-home-card h2 {
+  margin: 6px 0;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: clamp(30px, 3vw, 44px);
+  font-weight: 400;
+}
+
+.child-home-card h3 { margin: 24px 0 12px; font-size: 20px; }
+
+.child-home-label {
+  margin: 0;
+  color: #625b78;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.child-home-card-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+.child-home-streak {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #dcd7ff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.child-home-adventure {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: #dcd7ff;
+}
+
+.child-home-adventure-text { flex: 1; }
+.child-home-adventure-text p:not(.child-home-label) { margin: 0 0 18px; color: #625b78; font-size: 17px; }
+
+.child-home-pip { width: 160px; max-width: 30%; height: auto; object-fit: contain; }
+
+.child-home-button {
+  height: 56px;
+  padding: 0 36px;
+  border: 0;
+  border-radius: 28px;
+  background: #ff6498;
+  color: #2b272b;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.child-home-button:hover { background: #ff4f8b; }
+
+.child-home-week { display: flex; justify-content: space-between; gap: 8px; margin-top: 16px; }
+
+.child-home-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-radius: 19px;
+  color: #625b78;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.child-home-day.is-today { background: #e8e6fe; }
+
+.child-home-day-circle {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cec8ea;
+  border-radius: 50%;
+  background: #fff;
+  color: #2b272b;
+  font-size: 16px;
+}
+
+.child-home-day-circle.is-active { border-color: #3423c7; background: #3423c7; color: #fff; }
+
+.child-home-note { margin: 16px 0 0; color: #625b78; font-size: 13px; }
+
+@media (max-width: 850px) {
+  .child-home-adventure { flex-direction: column; align-items: flex-start; }
+}
