@@ -1,0 +1,150 @@
+/* Home: three screens one below the other (hero, story, join). Each one is a 1512 x 982 Figma frame
+   (MacBook Pro 14") and every number in the Home CSS files is a pixel of that frame.
+   --u  one frame pixel on this screen: each composition always fits, in width and in height.
+        It uses cqw and not vw, because vw also counts the scrollbar.
+   --h  the same for the header, which never goes below 80% so it stays readable on small laptops.
+   A composition sits on the bottom edge of its screen (.home-stage). What continues from the screen above
+   sits on the top edge (.home-stage-top), so the dots always line up. On other proportions only the background grows. */
+
+.home {
+  position: relative;
+  container-type: inline-size;
+  width: 100%;
+  background: #e8e6fe;
+}
+
+.home > * {
+  --u: min(calc(100cqw / 1512), calc(100dvh / 982));
+  --h: max(0.8px, var(--u));
+}
+
+/* ---------- Screens ---------- */
+.home-screen {
+  position: relative;
+  overflow: hidden;
+  height: min(100dvh, calc(var(--u) * 1300)); /* the limit is for monitors turned vertical */
+}
+
+.home-screen.hero-screen { height: 100dvh; }
+
+.home-stage,
+.home-stage-top {
+  position: absolute;
+  left: calc(50% - var(--u) * 756);
+  width: calc(var(--u) * 1512);
+}
+
+.home-stage {
+  bottom: 0;
+  height: calc(var(--u) * 982);
+}
+
+.home-stage-top { top: 0; }
+
+.hero-screen .home-stage { pointer-events: none; }
+
+.home-illustration svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Right side of the header (the rest is in PageHeader.css) ---------- */
+.home-account {
+  position: absolute;
+  right: calc(var(--h) * 58);
+  top: calc(var(--h) * 58);
+  display: flex;
+  gap: calc(var(--h) * 20);
+}
+
+.home-account .page-link { margin-top: calc(var(--h) * 7); }
+
+.page-header .home-login {
+  width: calc(var(--h) * 113);
+  height: calc(var(--h) * 41);
+  padding-bottom: calc(var(--h) * 4);
+  border-radius: calc(var(--h) * 30);
+  background: #ff6498;
+  color: #fff;
+  transition: background-color 0.2s;
+}
+
+.page-header .home-login:hover { background: #ff3e81; }
+
+/* ---------- Hero ---------- */
+.home-circle,
+.home-title,
+.home-dots,
+.home-explorers {
+  position: absolute;
+  max-width: none;
+}
+
+.home-circle {
+  left: calc(var(--u) * 1160);
+  top: calc(var(--u) * 444);
+  width: calc(var(--u) * 225);
+  height: calc(var(--u) * 225);
+}
+
+.home-title {
+  left: calc(var(--u) * -95);
+  top: calc(var(--u) * 106);
+  width: calc(var(--u) * 1703);
+  color: #fff;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 230);
+  font-weight: 400;
+  line-height: 0.9;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.home-dots {
+  left: calc(var(--u) * 141);
+  top: calc(var(--u) * 760);
+  width: calc(var(--u) * 329);
+  height: calc(var(--u) * 222);
+}
+
+.home-explorers {
+  left: calc(var(--u) * 367);
+  top: calc(var(--u) * 316);
+  width: calc(var(--u) * 699);
+  height: calc(var(--u) * 670);
+}
+
+/* ---------- Animation ----------
+   Characters: every ".rig" group made by utils/rigIllustration.js swings around its own joint,
+   from one side to the other and back (its angle, timing and joint are set on the group itself).
+   Titles fade in the first time they are seen. The striped circles keep turning.
+   Out of view everything pauses. */
+.home-illustration .rig { transform-box: view-box; }
+
+.home-fade { opacity: 0; }
+.home-fade.is-shown { opacity: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-illustration .rig {
+    animation: home-swing var(--duration) ease-in-out var(--delay) infinite alternate;
+  }
+
+  .home-fade { transition: opacity 1.4s cubic-bezier(0.22, 0.61, 0.36, 1); }
+
+  .home-circle { animation: home-circle-turn 7.8s linear infinite; }
+
+  .home-screen:not(.is-visible) * { animation-play-state: paused; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-fade { opacity: 1; }
+}
+
+@keyframes home-swing {
+  from { transform: rotate(calc(var(--angle) * -1deg)); }
+  to { transform: rotate(calc(var(--angle) * 1deg)); }
+}
+
+@keyframes home-circle-turn {
+  to { transform: rotate(360deg); }
+}

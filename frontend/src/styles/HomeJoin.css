@@ -1,0 +1,51 @@
+/* Third screen of Home. Scale and layout rules are explained at the top of Home.css. */
+
+.join-screen { background: #fff; }
+
+.join-screen .home-stage > *,
+.join-dots {
+  position: absolute;
+  max-width: none;
+}
+
+.join-dots {
+  left: calc(var(--u) * 1101);
+  top: 0;
+  width: calc(var(--u) * 314);
+  height: calc(var(--u) * 198);
+}
+
+.join-circle {
+  left: calc(var(--u) * 52);
+  top: calc(var(--u) * 159);
+  width: calc(var(--u) * 254);
+  height: calc(var(--u) * 254);
+  rotate: 90deg;
+}
+
+.join-title {
+  left: calc(var(--u) * -96);
+  top: calc(var(--u) * 79);
+  width: calc(var(--u) * 1703);
+  color: #e8e6fe;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 230);
+  font-weight: 400;
+  line-height: 0.9;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.join-team {
+  left: calc(var(--u) * 272);
+  top: calc(var(--u) * 371);
+  width: calc(var(--u) * 1072);
+  height: calc(var(--u) * 611);
+  pointer-events: none;
+}
+
+/* Animation: see the end of Home.css. This title takes a little longer to fade in. */
+@media (prefers-reduced-motion: no-preference) {
+  .join-title.home-fade { transition-duration: 1.6s; }
+  .join-circle { animation: home-circle-turn 7.8s linear infinite; }
+}

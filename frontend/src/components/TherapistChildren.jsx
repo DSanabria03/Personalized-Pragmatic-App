@@ -1,104 +1,147 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import TherapistLayout from './TherapistLayout';
-import ChildAvatar from './ChildAvatar';
-import Icon from './Icons';
-import { FOCUS_OPTIONS } from '../data/mockData';
+import { CURRENT_FOCUS } from '../data/activities';
+import {
+  SORT_OPTIONS, STATUS_OPTIONS, ageLabel, avatarClass, avatarOf, filterChildren, isNew, practisedThisWeek, shortDate, useChildren,
+  weekRange,
+} from '../utils/therapist';
+import '../styles/TherapistChildren.css';
 
-export default function TherapistChildren({ onNavigate, kids, onOpenChild }) {
+// Every child of the therapist (Figma 645:364), as cards. "View profile" opens the child's page.
+// Practice days: one mark per day of the child's weekly goal (set in "Edit profile" on the child's page).
+
+const icon = (name) => `/resources/therapist/${name}.svg`;
+
+export default function TherapistChildren({ session, onNavigate, onLogout, onOpenChild }) {
+  const { data, error } = useChildren(onLogout);
   const [search, setSearch] = useState('');
-  const [focusFilter, setFocusFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('active');
+  const [status, setStatus] = useState('all');
+  const [sort, setSort] = useState('last');
 
-  const practising = kids.filter((k) => k.practiceDays > 0).length;
-  const gettingStarted = kids.filter((k) => k.activities === 0).length;
-
-  const list = useMemo(() => {
-    const result = kids.filter((k) =>
-      k.name.toLowerCase().includes(search.toLowerCase()) &&
-      (focusFilter === 'all' || k.focus === focusFilter));
-    return [...result].sort((a, b) => (sortBy === 'name' ? a.name.localeCompare(b.name) : a.daysAgo - b.daysAgo));
-  }, [kids, search, focusFilter, sortBy]);
+  const all = data ? data.children : [];
+  const children = filterChildren(all, { search, status, sort });
 
   return (
-    <TherapistLayout active="children" onNavigate={onNavigate}>
-      <div className="db-page-header">
-        <div>
-          <p className="db-eyebrow">Your practice</p>
-          <h1 className="db-title">Children</h1>
-          <p className="db-subtitle">Every little explorer, in one place. Find a child and follow their practice journey.</p>
-        </div>
-        <button type="button" className="db-btn-primary" onClick={() => onNavigate('go_add_child')}>
-          <Icon name="plus" /> Register a child
-        </button>
-      </div>
+    <TherapistLayout active="children" session={session} onNavigate={onNavigate} onLogout={onLogout}>
+      <div className="tc">
+        <header className="tc-header">
+          <div>
+            <p className="tl-eyebrow">YOUR PRACTICE</p>
+            <h1 className="tl-title">Children</h1>
+            <p className="tl-subtitle">Every little explorer, in one place. Find a child and follow their practice journey.</p>
+          </div>
+          <button type="button" className="tc-add" onClick={() => onNavigate('go_add_child')}>
+            <img src={icon('plus')} alt="" />Add a child
+          </button>
+        </header>
 
-      <div className="db-summary-bar">
-        <div><strong>{kids.length}</strong><div><span>Children in your practice</span><small>A little journey for everyone</small></div></div>
-        <div><strong>{practising}</strong><div><span>Practising this week</span><small>26 Oct – 1 Nov 2026</small></div></div>
-        <div><strong>{gettingStarted}</strong><div><span>Getting started</span><small>Ready for their first little step</small></div></div>
-      </div>
+        {error && <p className="tl-error">{error}</p>}
 
-      <div className="db-section-header">
-        <h2 className="db-section-title db-section-title--lg">Your little explorers <span className="db-count">{kids.length}</span></h2>
-        <span className="db-small">Choose a child to see their journey</span>
-      </div>
+        {data && (
+          <>
+            <section className="tc-glance" aria-label="Practice at a glance">
+              <Summary value={all.length} title="Children in your practice" note="A little journey for everyone" />
+              <span className="tc-glance-divider" />
+              <Summary value={all.filter(practisedThisWeek).length} title="Practising this week" note={weekRange(data.week_start)} />
+              <span className="tc-glance-divider" />
+              <Summary value={all.filter(isNew).length} title="Getting started" note="Ready for their first little step" />
+            </section>
 
-      <div className="db-filters">
-        <div className="db-search">
-          <Icon name="search" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by child’s name" />
-        </div>
-        <select className="db-select" value={focusFilter} onChange={(e) => setFocusFilter(e.target.value)}>
-          <option value="all">All children</option>
-          {FOCUS_OPTIONS.map((f) => <option key={f} value={f}>{f}</option>)}
-        </select>
-        <select className="db-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-          <option value="active">Sort: Last active</option>
-          <option value="name">Sort: Name</option>
-        </select>
-      </div>
-
-      <div className="db-cards-grid">
-        {list.map((k) => (
-          <article key={k.id} className="db-child-card">
-            <div className="db-child-card-head">
-              <div className="db-child-cell db-child-cell--md">
-                <ChildAvatar child={k} size={48} />
-                <div><strong>{k.name}</strong><span>{k.age} years</span></div>
+            <section className="tc-dir" aria-label="Your little explorers">
+              <h2 className="tl-heading">Your little explorers</h2>
+              <div className="tc-controls">
+                <label className="tc-search">
+                  <img src={icon('search-17')} alt="" />
+                  <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by child’s name"
+                    aria-label="Search by child’s name" />
+                </label>
+                <div className="tl-select tc-filter">
+                  <span>{STATUS_OPTIONS.find((o) => o.id === status).label}</span>
+                  <img src={icon('chevron-down-16')} alt="" />
+                  <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Show">
+                    {STATUS_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+                  </select>
+                </div>
+                <div className="tl-select tc-sort">
+                  <span>Sort: {SORT_OPTIONS.find((o) => o.id === sort).label}</span>
+                  <img src={icon('chevron-down-16')} alt="" />
+                  <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort by">
+                    {SORT_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+                  </select>
+                </div>
               </div>
-              {k.isNew && <span className="db-badge">New</span>}
-            </div>
 
-            <div className="db-child-card-info">
-              <div><small>Current focus</small><span>{k.focus}</span></div>
-              <div><small>Support level</small><span>{k.support}</span></div>
-            </div>
+              {all.length === 0 && (
+                <p className="tl-empty">
+                  No children yet. <button type="button" onClick={() => onNavigate('go_add_child')}>Add your first child</button>
+                </p>
+              )}
+              {all.length > 0 && children.length === 0 && <p className="tl-empty">No children match this search.</p>}
 
-            <div className="db-progress-label">
-              <small>{k.practiceDays > 0 ? 'Practice days this week' : 'Ready for a first activity'}</small>
-              <small>{k.practiceDays} / {k.weeklyGoal} days</small>
-            </div>
-            <div className="db-segments">
-              {Array.from({ length: k.weeklyGoal }, (_, i) => (
-                <span key={i} className={i < k.practiceDays ? 'is-filled' : ''} />
-              ))}
-            </div>
-
-            <div className="db-child-card-foot">
-              <small>{k.lastActive ? `Last active ${k.lastActive}` : 'No practice yet'}</small>
-              <button type="button" className="db-link" onClick={() => onOpenChild(k.id)}>
-                View profile <Icon name="arrowRight" size={14} />
-              </button>
-            </div>
-          </article>
-        ))}
-        {list.length === 0 && <p className="db-empty">No children found.</p>}
-      </div>
-
-      <div className="db-table-foot">
-        <span className="db-footnote">Example data · Practice progress reflects participation, not clinical development or physical growth.</span>
-        <span className="db-footnote">Showing {list.length === kids.length ? 'all ' : ''}{list.length} children</span>
+              <ul className="tc-cards">
+                {children.map((c) => <ChildCard key={c.id} child={c} onOpen={() => onOpenChild(c.id)} />)}
+              </ul>
+            </section>
+          </>
+        )}
       </div>
     </TherapistLayout>
+  );
+}
+
+function Summary({ value, title, note }) {
+  return (
+    <div className="tc-summary">
+      <p className="tc-summary-value">{value}</p>
+      <div>
+        <p className="tc-summary-title">{title}</p>
+        <p className="tc-summary-note">{note}</p>
+      </div>
+    </div>
+  );
+}
+
+function ChildCard({ child, onOpen }) {
+  const fresh = isNew(child);
+  const goal = child.weekly_goal;
+  return (
+    <li className="tc-card">
+      <div className="tc-identity">
+        <img className={`tc-avatar${avatarClass(child.pip)}`} src={avatarOf(child.pip)} alt="" />
+        <div className="tc-identity-text">
+          <p className="tc-name" title={child.name}>{child.name}</p>
+          <p className="tc-age">{ageLabel(child.age)}</p>
+        </div>
+        {fresh && <span className="tc-new">New</span>}
+      </div>
+
+      <div className="tc-details">
+        <div className="tc-focus">
+          <p className="tc-label">Current focus</p>
+          <p className="tc-focus-value">{CURRENT_FOCUS.title}</p>
+        </div>
+        <div className="tc-support">
+          <p className="tc-label">Support level</p>
+          <p className="tc-support-value">{child.support_level}</p>
+        </div>
+      </div>
+
+      <div className="tc-week">
+        <p className="tc-week-text">
+          <span>{fresh ? 'Ready for a first activity' : 'Practice days this week'}</span>
+          <span>{child.practice_days_week} / {goal} days</span>
+        </p>
+        <div className="tc-marks" aria-hidden="true">
+          {Array.from({ length: goal }, (_, i) => <span key={i} className={i < child.practice_days_week ? 'is-done' : ''} />)}
+        </div>
+      </div>
+
+      <div className="tc-foot">
+        <p>{fresh ? 'No practice yet' : `Last active ${shortDate(child.last_active)}`}</p>
+        <button type="button" className="tc-view" onClick={onOpen} aria-label={`View ${child.name}’s profile`}>
+          View profile<img src={icon('arrow-right-15')} alt="" />
+        </button>
+      </div>
+    </li>
   );
 }

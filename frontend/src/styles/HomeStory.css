@@ -1,0 +1,168 @@
+/* Second screen of Home. Scale and layout rules are explained at the top of Home.css. */
+
+.story-screen { background: #fff; }
+
+/* Lavender wall: everything above the floor, edge to edge. */
+.story-wall {
+  position: absolute;
+  inset: 0 0 calc(var(--u) * 138);
+  background: #e8e6fe;
+}
+
+.story-floor {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--u) * 138);
+  width: 100%;
+  height: max(1px, var(--u));
+  transform: translateY(50%); /* centred on the edge, like the stroke in Figma */
+}
+
+.story-screen .home-stage > *,
+.story-dots-top,
+.story-mark,
+.story-text {
+  position: absolute;
+  max-width: none;
+}
+
+/* ---------- Decoration ---------- */
+.story-dots-top {
+  left: calc(var(--u) * 141);
+  top: 0;
+  width: calc(var(--u) * 329);
+  height: calc(var(--u) * 107);
+}
+
+/* These white dots end at the floor. */
+.story-dots-side {
+  left: calc(var(--u) * 1101);
+  top: calc(var(--u) * 513);
+  width: calc(var(--u) * 329);
+  height: calc(var(--u) * 331);
+  overflow: hidden;
+}
+
+.story-dots-side img {
+  display: block;
+  width: 100%;
+  height: calc(var(--u) * 469);
+  max-width: none;
+}
+
+.story-dots-floor {
+  left: calc(var(--u) * 1101);
+  top: calc(var(--u) * 862);
+  width: calc(var(--u) * 314);
+  height: calc(var(--u) * 94);
+}
+
+.story-ring-small {
+  left: calc(var(--u) * 106);
+  top: calc(var(--u) * 524);
+  width: calc(var(--u) * 70);
+  height: calc(var(--u) * 70);
+}
+
+.story-ring-large {
+  left: calc(var(--u) * 1263);
+  top: calc(var(--u) * 86);
+  width: calc(var(--u) * 146);
+  height: calc(var(--u) * 146);
+}
+
+.story-ring-center {
+  left: calc(var(--u) * 1291);
+  top: calc(var(--u) * 114);
+  width: calc(var(--u) * 90);
+  height: calc(var(--u) * 90);
+}
+
+/* ---------- Quote ---------- */
+.story-quote { inset: 0; }
+
+.story-text {
+  left: calc(var(--u) * 443);
+  top: calc(var(--u) * 182);
+  width: calc(var(--u) * 625);
+  color: #2b272b;
+  font-family: 'Alexandria', sans-serif;
+  font-size: calc(var(--u) * 25);
+  font-weight: 400;
+  line-height: normal;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.story-mark {
+  width: calc(var(--u) * 146);
+  height: calc(var(--u) * 123);
+  color: #b6b2ff;
+  font-family: 'Gasoek One', sans-serif;
+  font-size: calc(var(--u) * 120);
+  line-height: 0.9;
+  text-align: center;
+}
+
+.story-mark--open {
+  left: calc(var(--u) * 322);
+  top: calc(var(--u) * 146);
+}
+
+.story-mark--close {
+  left: calc(var(--u) * 1052);
+  top: calc(var(--u) * 204);
+  transform: rotate(180deg);
+}
+
+/* Letters are typed one by one (HomeStory.jsx); the space they take is kept from the start. */
+.story-char { opacity: 0; }
+.story-char.is-shown { opacity: 1; }
+
+.story-text-full {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Zero width: it never pushes the letters around. */
+.story-caret {
+  display: inline-block;
+  width: 0;
+  height: calc(var(--u) * 26);
+  margin-right: calc(var(--u) * -2);
+  border-left: calc(var(--u) * 2) solid #2b272b;
+  vertical-align: calc(var(--u) * -4);
+  transition: opacity 0.4s;
+}
+
+.story-caret.is-gone { opacity: 0; }
+
+.story-mark { opacity: 0; }
+.story-mark.is-shown { opacity: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .story-char { transition: opacity 0.12s linear; }
+  .story-caret { animation: story-caret-blink 0.9s steps(1) infinite; }
+  .story-mark { transition: opacity 0.45s ease-out; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-mark { opacity: 1; }
+}
+
+@keyframes story-caret-blink {
+  50% { opacity: 0; }
+}
+
+/* ---------- Investigators ---------- */
+.story-investigators {
+  left: calc(var(--u) * 264);
+  top: calc(var(--u) * 423);
+  width: calc(var(--u) * 985);
+  height: calc(var(--u) * 421);
+  pointer-events: none;
+}

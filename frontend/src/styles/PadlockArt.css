@@ -1,0 +1,40 @@
+/* Left card of the log-in and the registration. Static. Same scale as AuthLayout.css. */
+
+.padlock-characters {
+  left: calc(var(--u) * 55);
+  top: calc(var(--u) * 129.05);
+  width: calc(var(--u) * 611.015);
+  height: calc(var(--u) * 802.956);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.padlock-characters img {
+  position: absolute;
+  max-width: none;
+  left: 0;
+  top: -28.52%;
+  width: 100.02%;
+  height: 136.43%;
+}
+
+.padlock-ring {
+  left: calc(var(--u) * 532);
+  top: calc(var(--u) * 231);
+  width: calc(var(--u) * 58);
+  height: calc(var(--u) * 58);
+}
+
+.padlock-dot-large {
+  left: calc(var(--u) * 167);
+  top: calc(var(--u) * 865);
+  width: calc(var(--u) * 23);
+  height: calc(var(--u) * 23);
+}
+
+.padlock-dot-small {
+  left: calc(var(--u) * 150);
+  top: calc(var(--u) * 860);
+  width: calc(var(--u) * 10);
+  height: calc(var(--u) * 10);
+}

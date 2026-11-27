@@ -1,0 +1,24 @@
+/* Left card of "add a child" and of the child's code. Static. Same scale as AuthLayout.css. */
+
+.quest-panel {
+  left: calc(var(--u) * 56);
+  top: calc(var(--u) * 130);
+  width: calc(var(--u) * 608);
+  height: calc(var(--u) * 796);
+}
+
+.quest-map {
+  left: calc(var(--u) * 91);
+  top: calc(var(--u) * 567);
+  width: calc(var(--u) * 282);
+  height: calc(var(--u) * 359);
+  pointer-events: none;
+}
+
+.quest-lookout {
+  left: calc(var(--u) * 338);
+  top: calc(var(--u) * 590);
+  width: calc(var(--u) * 314);
+  height: calc(var(--u) * 336);
+  pointer-events: none;
+}

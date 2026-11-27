@@ -1,6 +1,8 @@
 """
 Story API: the frontend calls these while the child plays a story.
 
+    GET  /api/stories?language=en                    therapist only: every story with its exercises (scenes)
+                                                     and their hidden meaning (the "Activities" page)
     GET  /api/stories/{story_id}?language=en         story + scenes, WITHOUT the correct answers
     POST /api/stories/{story_id}/narrate             Pip tells what happens in a scene
     POST /api/stories/{story_id}/check               child picked an option -> right or not, Pip's action, the
@@ -9,9 +11,9 @@ Story API: the frontend calls these while the child plays a story.
     POST /api/stories/{story_id}/start               a logged-in child starts playing -> run_id
     POST /api/stories/{story_id}/finish              Pip celebrates at the end + the results ("Great job" screen)
 
-If a child is logged in (Authorization: Bearer <token>), every answer is saved (in memory, mock_data.py) and the
+If a child is logged in (Authorization: Bearer <token>), every answer is saved (SQLite, database.py) and the
 results count for their progress and the therapist's dashboard. Pip also uses the child's name.
-Answers of guests (nobody logged in) are kept in memory too (mock_data.GUEST_ANSWERS). Nothing is written to disk.
+Answers of guests (nobody logged in) are not saved: every attempt in the database belongs to a child.
 
 Stories live in data/stories/<story_id>.json. Text there can be a plain string or {"en": "...", "it": "..."}.
 "pip_role" (story or scene) says which character Pip plays, e.g. the waiter or one of the customers.
@@ -19,15 +21,14 @@ Stories live in data/stories/<story_id>.json. Text there can be a plain string o
 
 import json
 import re
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import AfterValidator, BaseModel, Field
 
-import mock_data
-from services import accounts, llm_service, progress
+from dependencies import CurrentTherapist, OptionalUser
+from services import llm_service, progress
 
 router = APIRouter(prefix="/api/stories", tags=["stories"])
 
@@ -103,9 +104,8 @@ def find_scene(story: dict, scene_id: str) -> tuple[int, dict]:
     raise HTTPException(404, f"Scene '{scene_id}' not found in story '{story['id']}'")
 
 
-def logged_in_child(authorization: str | None) -> dict | None:
+def logged_in_child(user: dict | None) -> dict | None:
     """The child who is playing, if the browser sent a child's login token."""
-    user = accounts.user_from_token(authorization)
     return user["child"] if user and user["role"] == "child" else None
 
 
@@ -113,18 +113,11 @@ def child_name_for(child: dict | None, fallback: str | None) -> str | None:
     return llm_service.clean_name(child["name"] if child else fallback)
 
 
-def save_answer(entry: dict) -> None:
-    """Answers of guests (no child logged in), kept in memory (mock_data.GUEST_ANSWERS).
-    Answers of logged-in children go to their progress (services/progress.py)."""
-    entry["timestamp"] = datetime.now(timezone.utc).isoformat()
-    with mock_data.LOCK:
-        mock_data.GUEST_ANSWERS.append(entry)
-
-
 # ---------- request / response shapes ----------
 # Names sent by the browser end up in the LLM's instructions: keep only a safe short name.
 PipName = Annotated[str, AfterValidator(lambda name: llm_service.clean_name(name) or "Pip")]
 ChildName = Annotated[str | None, AfterValidator(llm_service.clean_name)]
+RunId = Annotated[int, Field(ge=0, lt=2**63)]    # SQLite can't take bigger numbers
 
 class NarrateRequest(BaseModel):
     scene_id: str
@@ -141,7 +134,7 @@ class AnswerRequest(BaseModel):
     pip_name: PipName = "Pip"
     child_code: str | None = None   # old: guests only (logged-in children are known from their token)
     child_name: ChildName = None
-    run_id: int | None = None       # from /start, links the answer to this play-through
+    run_id: RunId | None = None     # from /start, links the answer to this play-through
 
 
 class StartRequest(BaseModel):
@@ -159,11 +152,27 @@ class FinishRequest(BaseModel):
     pip_name: PipName = "Pip"
     child_name: ChildName = None
     solved_scene_ids: list[str] = []
-    run_id: int | None = None
-    results: list[SceneResult] = []   # for guests; for logged-in children mock_data.py is used
+    run_id: RunId | None = None
+    results: list[SceneResult] = []   # for guests; for logged-in children the database is used
 
 
 # ---------- endpoints ----------
+@router.get("")
+def list_stories(_therapist: CurrentTherapist, language: str = "en"):
+    """For the therapist's "Activities" page: what each exercise shows and the meaning the child should find."""
+    lang = check_language(language)
+    stories = []
+    for path in sorted(STORIES_DIR.glob("*.json")):
+        story = load_story(path.stem)
+        exercises = []
+        for raw in story["scenes"]:
+            s = localized_scene(raw, lang)
+            exercises.append({k: s[k] for k in ("id", "speaker", "situation", "quote", "question", "hidden_meaning")})
+        stories.append({"id": story["id"], "category": story.get("category"), "title": pick(story["title"], lang),
+                        "setting": pick(story["setting"], lang), "exercises": exercises})
+    return {"stories": stories}
+
+
 @router.get("/{story_id}")
 def get_story(story_id: str, language: str = "en"):
     lang = check_language(language)
@@ -186,7 +195,7 @@ def get_story(story_id: str, language: str = "en"):
 
 
 @router.post("/{story_id}/narrate")
-def narrate(story_id: str, req: NarrateRequest, authorization: str | None = Header(default=None)):
+def narrate(story_id: str, req: NarrateRequest, user: OptionalUser):
     lang = check_language(req.language)
     story = load_story(story_id)
     index, raw = find_scene(story, req.scene_id)
@@ -194,7 +203,7 @@ def narrate(story_id: str, req: NarrateRequest, authorization: str | None = Head
     previous = localized_scene(story["scenes"][index - 1], lang) if index > 0 else None
     speech = llm_service.narrate_scene(
         lang, req.pip_name, pip_role(story, raw, lang), pick(story["setting"], lang), scene, previous,
-        is_first=(index == 0), child_name=child_name_for(logged_in_child(authorization), req.child_name),
+        is_first=(index == 0), child_name=child_name_for(logged_in_child(user), req.child_name),
     )
     return {"scene_id": scene["id"], "narration": speech, "speaker": scene["speaker"],
             "listener": scene["listener"], "quote": scene["quote"]}
@@ -250,9 +259,9 @@ def check(story_id: str, req: AnswerRequest):
 
 
 @router.post("/{story_id}/answer")
-def answer(story_id: str, req: AnswerRequest, authorization: str | None = Header(default=None)):
+def answer(story_id: str, req: AnswerRequest, user: OptionalUser):
     lang, story, raw, scene, picked, result = evaluate(story_id, req)
-    child = logged_in_child(authorization)
+    child = logged_in_child(user)
     is_correct, outcome = result["is_correct"], result["outcome"]
 
     speech = llm_service.react_to_answer(
@@ -264,32 +273,26 @@ def answer(story_id: str, req: AnswerRequest, authorization: str | None = Header
     if child:   # saved for the child's progress and the therapist's dashboard
         progress.record_attempt(child["id"], req.run_id, story_id, scene["id"], lang, req.child_answer,
                                 is_correct, req.attempt, outcome, speech)
-    else:
-        save_answer({
-            "child_code": req.child_code, "story_id": story_id, "scene_id": scene["id"], "language": lang,
-            "child_answer": req.child_answer, "is_correct": is_correct, "attempt": req.attempt,
-            "outcome": outcome, "pip_said": speech, "model": llm_service.LLM_MODEL,
-        })
 
     return {**result, "speech": speech}      # the same as /check, plus Pip's sentence
 
 
 @router.post("/{story_id}/start")
-def start(story_id: str, req: StartRequest, authorization: str | None = Header(default=None)):
+def start(story_id: str, req: StartRequest, user: OptionalUser):
     """A logged-in child starts the story: creates a 'run' so all answers of this play-through belong together."""
     lang = check_language(req.language)
     load_story(story_id)
-    child = logged_in_child(authorization)
+    child = logged_in_child(user)
     if not child:
         return {"run_id": None, "child": None}
     return {"run_id": progress.start_run(child["id"], story_id, lang), "child": {"name": child["name"]}}
 
 
 @router.post("/{story_id}/finish")
-def finish(story_id: str, req: FinishRequest, authorization: str | None = Header(default=None)):
+def finish(story_id: str, req: FinishRequest, user: OptionalUser):
     lang = check_language(req.language)
     story = load_story(story_id)
-    child = logged_in_child(authorization)
+    child = logged_in_child(user)
     total = len(story["scenes"])
 
     # The results of this play-through (numbers for the "Great job" screen)

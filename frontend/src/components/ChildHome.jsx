@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { BadgeList, LevelBar } from './Progress';
-import { getPip } from '../data/mockData';
+import { getPip } from '../data/pips';
 
 // The child's start page after logging in with their code (based on the Figma "Overview" page):
 // greeting, this week, today's adventure, level and badges - all from what the child really did.
@@ -54,8 +54,8 @@ export default function ChildHome({ session, settings, onNavigate, onLogout }) {
   const childName = session.nickname || session.name;
 
   useEffect(() => {
-    api(`/api/me?language=${lang}`)
-      .then((me) => setProgress(me.progress))
+    api(`/api/me/progress?language=${lang}`)
+      .then(setProgress)
       .catch((e) => setError(e.message));
   }, [lang]);
 
@@ -76,7 +76,7 @@ export default function ChildHome({ session, settings, onNavigate, onLogout }) {
 
       <main style={styles.page}>
         <section style={styles.hello}>
-          <img src={pip ? pip.img : '/resources/characters.png'} alt={pip ? pip.name : 'Pip characters'} style={styles.heroImg} />
+          <img src={pip ? pip.img : '/resources/icon.png'} alt="Your Pip" style={styles.heroImg} />
           <div style={{ flex: 1, minWidth: '220px' }}>
             <h1 style={{ margin: 0, fontSize: 'clamp(32px, 4vw, 52px)' }}>{t.hi(childName)}</h1>
             <p style={{ margin: '6px 0 0', color: '#4b5563', fontSize: '18px' }}>{t.sub}</p>
